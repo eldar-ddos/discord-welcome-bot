@@ -42,6 +42,9 @@ async def on_member_join(member):
         )
         embed.set_image(url=GIF_URL)
         await channel.send(embed=embed)
+@bot.command()
+async def whomadeu(ctx):
+    await ctx.send("🤖 Ja sam bot napravljen od strane **DunyaStranger** 💻")
 
 while True:
     try:
@@ -50,3 +53,4 @@ while True:
     except Exception as e:
         print(f"Bot se srušio: {e}")
         print("Ponovno pokretanje...")
+
