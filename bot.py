@@ -1,6 +1,21 @@
 import os
 import discord
 from discord.ext import commands
+from flask import Flask
+from threading import Thread
+
+app = Flask('')
+
+@app.route('/')
+def home():
+    return "Bot is alive!"
+
+def run():
+    app.run(host="0.0.0.0", port=8080)
+
+def keep_alive():
+    t = Thread(target=run)
+    t.start()
 
 TOKEN = os.environ["TOKEN"]
 WELCOME_CHANNEL_ID = int(os.environ["WELCOME_CHANNEL_ID"])
@@ -28,4 +43,10 @@ async def on_member_join(member):
         embed.set_image(url=GIF_URL)
         await channel.send(embed=embed)
 
-bot.run(TOKEN)
+while True:
+    try:
+        keep_alive()
+        bot.run(TOKEN)
+    except Exception as e:
+        print(f"Bot se srušio: {e}")
+        print("Ponovno pokretanje...")
