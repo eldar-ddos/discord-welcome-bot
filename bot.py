@@ -21,7 +21,7 @@ def keep_alive():
 # --- Discord bot setup ---
 TOKEN = os.environ["TOKEN"]
 WELCOME_CHANNEL_ID = int(os.environ["WELCOME_CHANNEL_ID"])
-GIF_URL = os.environ.get("GIF_URL", "https://media.giphy.com/media/mLO9NirKIZJVgFfEz6/giphy.gif")
+GIF_URL = os.environ.get("GIF_URL", "https://media.tenor.com/7cISmEJ9FicAAAAC/smile.gif")
 
 intents = discord.Intents.default()
 intents.members = True
@@ -55,4 +55,5 @@ async def whomadeu(ctx):
 # --- Pokretanje bota ---
 keep_alive()
 bot.run(TOKEN)
+
 
