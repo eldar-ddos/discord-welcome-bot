@@ -1,10 +1,10 @@
+import os
 import discord
 from discord.ext import commands
 
-
-TOKEN = "your token"
-WELCOME_CHANNEL_ID = 1234567890
-GIF_URL = "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExdGNsZ3RqMWkza2hkbmI1YnFtN3Q0eHI5Mm55em9jZngwdnF4cjBhbiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/mLO9NirKIZJVgFfEz6/giphy.gif"  # tvoj GIF link
+TOKEN = os.environ["TOKEN"]
+WELCOME_CHANNEL_ID = int(os.environ["WELCOME_CHANNEL_ID"])
+GIF_URL = os.environ.get("GIF_URL", "https://media.giphy.com/media/duzpaTbCUy9Vu/giphy.gif")
 
 intents = discord.Intents.default()
 intents.members = True
@@ -18,16 +18,14 @@ async def on_ready():
 
 @bot.event
 async def on_member_join(member):
-    channel = bot.get_channel(1428257626113966112)
-
+    channel = bot.get_channel(WELCOME_CHANNEL_ID)
     if channel:
         embed = discord.Embed(
-        title=f"Dobrodošao, {member.name}! 🤝",
-        description=f"Esselamu alejke {member.name}. Dobrodošao na server.",
-        color=0x2ecc71
-    )
-    embed.set_image(url=GIF_URL)
-    await channel.send(embed=embed)
-
+            title=f"Dobrodošao, {member.name}! 🤝",
+            description=f"Esselamu alejke {member.name}. Dobrodošao na server.",
+            color=0x2ecc71
+        )
+        embed.set_image(url=GIF_URL)
+        await channel.send(embed=embed)
 
 bot.run(TOKEN)
