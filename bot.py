@@ -44,8 +44,8 @@ async def on_member_join(member):
             description=f"Esselamu alejke {member.name}. Dobrodošao na server.",
             color=0x2ecc71
         )
-        embed.set_image(url=GIF_URL)
         await channel.send(embed=embed)
+        await channel.send(GIF_URL)
 
 # --- Komanda: !whomadeu ---
 @bot.command()
@@ -55,5 +55,6 @@ async def whomadeu(ctx):
 # --- Pokretanje bota ---
 keep_alive()
 bot.run(TOKEN)
+
 
 
