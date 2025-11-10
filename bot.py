@@ -3,8 +3,21 @@ import discord
 from flask import Flask
 from threading import Thread
 from discord.ext import commands
+import random
 
-# --- Flask anti-idle sistem ---
+TOKEN = os.getenv("DISCORD_TOKEN", "ovde_tvoj_token")
+
+WELCOME_CHANNEL_ID = 1428257626113966112
+
+GIF_URL = "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExbm9iczdjMmxpcnpzNjIweXgyNWdxbWZzbm43aHU2N2RuNGFqeG1wMiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/7Hoo4xB9POCPDezZLz/giphy.gif"
+
+# 🔹 Poruka dobrodošlice
+WELCOME_MESSAGE_TEMPLATE = (
+    "🌙 Esselamu alejke {mention}, dobrodošao na **Ikhwa** server!\n"
+    "Molimo pročitaj pravila, predstavi se i uživaj u druženju.\n"
+    "Ako ti treba pomoć, taguj staff. 💬"
+)
+
 app = Flask('')
 
 @app.route('/')
@@ -18,43 +31,64 @@ def keep_alive():
     t = Thread(target=run)
     t.start()
 
-# --- Discord bot setup ---
-TOKEN = os.environ["TOKEN"]
-WELCOME_CHANNEL_ID = int(os.environ["WELCOME_CHANNEL_ID"])
-GIF_URL = os.environ.get("GIF_URL", "https://media.giphy.com/media/mLO9NirKIZJVgFfEz6/giphy.gif")
-
 intents = discord.Intents.default()
 intents.members = True
 intents.message_content = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-# --- Event: kad se bot upali ---
 @bot.event
 async def on_ready():
     print(f"✅ Bot je prijavljen kao {bot.user}")
 
-# --- Event: kad novi član uđe ---
 @bot.event
-async def on_member_join(member):
+async def on_member_join(member: discord.Member):
+    """Šalje poruku dobrodošlice + GIF kada neko uđe na server"""
     channel = bot.get_channel(WELCOME_CHANNEL_ID)
-    if channel:
-        embed = discord.Embed(
-            title=f"Dobrodošao, {member.name}! 🤝",
-            description=f"Esselamu alejke {member.name}. Dobrodošao na server.",
-            color=0x2ecc71
-        )
-        await channel.send(embed=embed)
-        await channel.send(GIF_URL)
 
-# --- Komanda: !whomadeu ---
+    if channel is None:
+        print("⚠️ Nije pronađen kanal dobrodošlice.")
+        return
+
+    content = WELCOME_MESSAGE_TEMPLATE.format(mention=member.mention)
+
+    try:
+        await channel.send(content)
+        await channel.send(GIF_URL)
+    except discord.HTTPException as e:
+        print(f"❌ Greška pri slanju dobrodošlice: {e}")
+
 @bot.command()
 async def whomadeu(ctx):
     await ctx.send("🤖 Ja sam bot napravljen od strane **DunyaStranger** 💻")
 
-# --- Pokretanje bota ---
+@bot.command()
+async def mute(ctx, member: discord.Member = None):
+    if member is not None:
+        await ctx.send(f"🤖 Ja ti nisam rob, {ctx.author.mention}! Neću mute-ati {member.mention}. To je moj brat.")
+    else:
+        await ctx.send(f"🤖 Ja ti nisam rob, {ctx.author.mention}. A nisi ni naveo koga da mute-am. Ha-ha-ha.")
+
+@bot.command()
+async def roast(ctx, member: discord.Member = None):
+    if member is None:
+        await ctx.send(f"{ctx.author.mention}, pa taguj nekog legendo -.-")
+        return
+
+    roasts = [
+        f"{member.mention}, hoćeš mute?.",
+        f"{member.mention}, get cooked.",
+        f"{member.mention}, pametnija šija od tebe.",
+        f"{member.mention}, idi čitaj Kur'an.",
+        f"{member.mention}, selefi su pisali knjige, a ti još kucaš ‘!help’ da vidiš komande.",
+        f"{member.mention}, zbog tebe razmišljam da napustim server.",
+        f"{member.mention}, selefi su dijelili znanje, a ti dijeliš memeove.",
+        f"{member.mention}, rejan.",
+        f"{member.mention}, nauči harfove.",
+    ]
+
+    roast_message = random.choice(roasts)
+    await ctx.send(roast_message)
+
 keep_alive()
 bot.run(TOKEN)
-
-
-
