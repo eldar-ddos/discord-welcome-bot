@@ -90,24 +90,51 @@ async def roast(ctx, member: discord.Member = None):
     roast_message = random.choice(roasts)
     await ctx.send(roast_message)
 
-@bot.command()
-async def vm(ctx):
-    role = discord.utils.get(ctx.guild.roles, name="🫂・BRAT")
-    if role:
-        await ctx.author.add_roles(role)
-        await ctx.send(f"{ctx.author.mention} sada ima ulogu {role.name} ✅")
-    else:
-        await ctx.send("❌ Uloga 🫂・BRAT nije pronađena!")
+from discord.ext import commands
+import discord
 
 @bot.command()
-async def vf(ctx):
+@commands.has_permissions(administrator=True)
+async def vm(ctx, member: discord.Member = None):
+    if member is None:
+        await ctx.send("❌ Moraš tagovati korisnika! (Primjer: `!vm @user`)")
+        return
+
+    role = discord.utils.get(ctx.guild.roles, name="🫂・BRAT")
+    if role:
+        await member.add_roles(role)
+        await ctx.send(f"✅ {member.mention} je sada **{role.name}**! (dodao {ctx.author.mention})")
+    else:
+        await ctx.send("❌ Uloga **🫂・BRAT** nije pronađena!")
+
+
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def vf(ctx, member: discord.Member = None):
+    if member is None:
+        await ctx.send("❌ Moraš tagovati korisnika! (Primjer: `!vf @user`)")
+        return
+
     role = discord.utils.get(ctx.guild.roles, name="🫂・SESTRA")
     if role:
-        await ctx.author.add_roles(role)
-        await ctx.send(f"{ctx.author.mention} sada ima ulogu {role.name} ✅")
+        await member.add_roles(role)
+        await ctx.send(f"✅ {member.mention} je sada **{role.name}**! (dodao {ctx.author.mention})")
     else:
-        await ctx.send("❌ Uloga 🫂・SESTRA nije pronađena!")
+        await ctx.send("❌ Uloga **🫂・SESTRA** nije pronađena!")
+
+
+@vm.error
+@vf.error
+async def role_command_error(ctx, error):
+    if isinstance(error, commands.MissingPermissions):
+        await ctx.send("🚫 Nemaš dozvolu da koristiš ovu komandu — samo **admini** i **vlasnik servera** mogu!")
+    elif isinstance(error, commands.BadArgument):
+        await ctx.send("❌ Moraš tagovati validnog korisnika! (npr. `!vm @user`)")
+    else:
+        await ctx.send("⚠️ Desila se neočekivana greška.")
+
 
 
 keep_alive()
 bot.run(TOKEN)
+
