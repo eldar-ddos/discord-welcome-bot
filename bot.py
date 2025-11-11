@@ -90,5 +90,24 @@ async def roast(ctx, member: discord.Member = None):
     roast_message = random.choice(roasts)
     await ctx.send(roast_message)
 
+@bot.command()
+async def vm(ctx):
+    role = discord.utils.get(ctx.guild.roles, name="🫂・BRAT")
+    if role:
+        await ctx.author.add_roles(role)
+        await ctx.send(f"{ctx.author.mention} sada ima ulogu {role.name} ✅")
+    else:
+        await ctx.send("❌ Uloga 🫂・BRAT nije pronađena!")
+
+@bot.command()
+async def vf(ctx):
+    role = discord.utils.get(ctx.guild.roles, name="🫂・SESTRA")
+    if role:
+        await ctx.author.add_roles(role)
+        await ctx.send(f"{ctx.author.mention} sada ima ulogu {role.name} ✅")
+    else:
+        await ctx.send("❌ Uloga 🫂・SESTRA nije pronađena!")
+
+
 keep_alive()
 bot.run(TOKEN)
