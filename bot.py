@@ -5,13 +5,12 @@ from threading import Thread
 from discord.ext import commands
 import random
 
-TOKEN = os.getenv("DISCORD_TOKEN", "ovde_tvoj_token")
+TOKEN = os.getenv("DISCORD_TOKEN", "ovdje_tvoj_token")
 
 WELCOME_CHANNEL_ID = 1428257626113966112
 
 GIF_URL = "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExbm9iczdjMmxpcnpzNjIweXgyNWdxbWZzbm43aHU2N2RuNGFqeG1wMiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/7Hoo4xB9POCPDezZLz/giphy.gif"
 
-# 🔹 Poruka dobrodošlice
 WELCOME_MESSAGE_TEMPLATE = (
     "🌙 Esselamu alejke {mention}, dobrodošao na **Ikhwa** server!\n"
     "Molimo pročitaj pravila, predstavi se i uživaj u druženju.\n"
@@ -37,26 +36,45 @@ intents.message_content = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
+EXTRA_ROASTS = [
+    "brate moj, tebe ni AI ne može popraviti.",
+    "brate ti si kao Windows Vista — niko ne zna što još postojiš.",
+    "brate, mentalno si na dial-up internetu.",
+    "brate, ja bih te roastao jače, ali ne gađam ispod waistline.",
+    "tvoje riječi imaju latency od 300ms.",
+    "brate, ti nisi bug — ti si feature koji niko nije tražio.",
+    "kada bi glupost bila valuta, ti bi bio milijarder.",
+    "brate tebe kad roastam osjećam se kao volontiram.",
+    "brate moj, tebi i tutorial ne bi pomogao.",
+    "brate, ti si walking 404 Not Found error."
+]
+
 @bot.event
 async def on_ready():
-    print(f"✅ Bot je prijavljen kao {bot.user}")
+    print(f"Bot je prijavljen kao {bot.user}")
 
 @bot.event
 async def on_member_join(member: discord.Member):
-    """Šalje poruku dobrodošlice + GIF kada neko uđe na server"""
     channel = bot.get_channel(WELCOME_CHANNEL_ID)
-
     if channel is None:
-        print("⚠️ Nije pronađen kanal dobrodošlice.")
         return
-
     content = WELCOME_MESSAGE_TEMPLATE.format(mention=member.mention)
-
     try:
         await channel.send(content)
         await channel.send(GIF_URL)
-    except discord.HTTPException as e:
-        print(f"❌ Greška pri slanju dobrodošlice: {e}")
+    except:
+        pass
+
+@bot.event
+async def on_message(message):
+    if message.author == bot.user:
+        return
+
+    if bot.user.mention in message.content:
+        if random.randint(1, 100) <= 2:
+            await message.channel.send("Ne smaraj, nadji posla ne budi dokon")
+
+    await bot.process_commands(message)
 
 @bot.command()
 async def whomadeu(ctx):
@@ -64,6 +82,9 @@ async def whomadeu(ctx):
 
 @bot.command()
 async def mute(ctx, member: discord.Member = None):
+    if member == ctx.author:
+        await ctx.send("Kako si samo kontradiktoran")
+        return
     if member is not None:
         await ctx.send(f"🤖 Ja ti nisam rob, {ctx.author.mention}! Neću mute-ati {member.mention}. To je moj brat.")
     else:
@@ -74,7 +95,6 @@ async def roast(ctx, member: discord.Member = None):
     if member is None:
         await ctx.send(f"{ctx.author.mention}, pa taguj nekog legendo -.-")
         return
-
     roasts = [
         f"{member.mention}, hoćeš mute?.",
         f"{member.mention}, get cooked.",
@@ -84,57 +104,48 @@ async def roast(ctx, member: discord.Member = None):
         f"{member.mention}, zbog tebe razmišljam da napustim server.",
         f"{member.mention}, selefi su dijelili znanje, a ti dijeliš memeove.",
         f"{member.mention}, rejan.",
-        f"{member.mention}, nauči harfove.",
-    ]
-
-    roast_message = random.choice(roasts)
-    await ctx.send(roast_message)
-
-from discord.ext import commands
-import discord
+        f"{member.mention}, nauči harfove."
+    ] + EXTRA_ROASTS
+    await ctx.send(random.choice(roasts))
 
 @bot.command()
-@commands.has_permissions(administrator=True)
-async def vm(ctx, member: discord.Member = None):
-    if member is None:
-        await ctx.send("❌ Moraš tagovati korisnika! (Primjer: `!vm @user`)")
+async def novotarije(ctx, thread: discord.Thread = None):
+    if thread is None:
+        await ctx.send("Taguj thread iz kanala 🏴・𝙽𝙾𝚅𝙾𝚃𝙰𝚁𝙸𝙹𝙴.")
         return
+    if isinstance(thread, discord.Thread):
+        messages = []
+        async for msg in thread.history(limit=50):
+            messages.append(f"{msg.author.display_name}: {msg.content}")
+        if messages:
+            content = "\n".join(messages[::-1])
+            try:
+                await ctx.author.send("Prenosim sadržaj iz threada:\n\n" + content)
+                await ctx.send("Poslano ti je u DM.")
+            except:
+                await ctx.send("Ne mogu ti poslati DM.")
+        else:
+            await ctx.send("Thread je prazan.")
+    else:
+        await ctx.send("To nije thread.")
 
+@bot.command()
+async def vm(ctx):
     role = discord.utils.get(ctx.guild.roles, name="🫂・BRAT")
     if role:
-        await member.add_roles(role)
-        await ctx.send(f"✅ {member.mention} je sada **{role.name}**! (dodao {ctx.author.mention})")
+        await ctx.author.add_roles(role)
+        await ctx.send(f"{ctx.author.mention} sada ima ulogu {role.name} ✅")
     else:
-        await ctx.send("❌ Uloga **🫂・BRAT** nije pronađena!")
-
+        await ctx.send("❌ Uloga 🫂・BRAT nije pronađena!")
 
 @bot.command()
-@commands.has_permissions(administrator=True)
-async def vf(ctx, member: discord.Member = None):
-    if member is None:
-        await ctx.send("❌ Moraš tagovati korisnika! (Primjer: `!vf @user`)")
-        return
-
+async def vf(ctx):
     role = discord.utils.get(ctx.guild.roles, name="🫂・SESTRA")
     if role:
-        await member.add_roles(role)
-        await ctx.send(f"✅ {member.mention} je sada **{role.name}**! (dodao {ctx.author.mention})")
+        await ctx.author.add_roles(role)
+        await ctx.send(f"{ctx.author.mention} sada ima ulogu {role.name} ✅")
     else:
-        await ctx.send("❌ Uloga **🫂・SESTRA** nije pronađena!")
-
-
-@vm.error
-@vf.error
-async def role_command_error(ctx, error):
-    if isinstance(error, commands.MissingPermissions):
-        await ctx.send("🚫 Nemaš dozvolu da koristiš ovu komandu — samo **admini** i **vlasnik servera** mogu!")
-    elif isinstance(error, commands.BadArgument):
-        await ctx.send("❌ Moraš tagovati validnog korisnika! (npr. `!vm @user`)")
-    else:
-        await ctx.send("⚠️ Desila se neočekivana greška.")
-
-
+        await ctx.send("❌ Uloga 🫂・SESTRA nije pronađena!")
 
 keep_alive()
 bot.run(TOKEN)
-
