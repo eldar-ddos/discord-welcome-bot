@@ -37,16 +37,16 @@ intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 EXTRA_ROASTS = [
-    "brate moj, tebe ni AI ne može popraviti.",
-    "brate ti si kao Windows Vista — niko ne zna što još postojiš.",
-    "brate, mentalno si na dial-up internetu.",
-    "brate, ja bih te roastao jače, ali ne gađam ispod waistline.",
-    "tvoje riječi imaju latency od 300ms.",
-    "brate, ti nisi bug — ti si feature koji niko nije tražio.",
-    "kada bi glupost bila valuta, ti bi bio milijarder.",
-    "brate tebe kad roastam osjećam se kao volontiram.",
-    "brate moj, tebi i tutorial ne bi pomogao.",
-    "brate, ti si walking 404 Not Found error."
+    "nećeš ti meni ovdje 'Thanks god', nego ćeš kazat 'Fala dragom Allahu'.",
+    "ovo je Pazar ovo nije Pešter!",
+    "oćeš ban?",
+    "ti si 404 not found.",
+    "šaciii.",
+    "yee-yee ahh haircut.",
+    "malo jači od pavlake.",
+    "iq ravan majmunu.",
+    "ni tutorial ti ne pomaže.",
+    "hoćeš da upoznaš krunu? (pitaj rejana sta je kruna)."
 ]
 
 @bot.event
