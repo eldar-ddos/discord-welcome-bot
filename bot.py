@@ -25,6 +25,9 @@ WELCOME_MESSAGE_TEMPLATE = (
     "Ako ti treba pomoć, taguj staff. 💬"
 )
 
+# ─────────────────────────────
+# Keep Alive Server (Railway)
+# ─────────────────────────────
 app = Flask('')
 
 @app.route('/')
@@ -37,13 +40,21 @@ def run():
 def keep_alive():
     Thread(target=run).start()
 
+
+# ─────────────────────────────
+# Discord Setup
+# ─────────────────────────────
 intents = discord.Intents.default()
 intents.members = True
 intents.message_content = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
-bot.remove_command("help")
+bot.remove_command("help")  # custom help
 
+
+# ─────────────────────────────
+# Data
+# ─────────────────────────────
 EXTRA_ROASTS = [
     "nećeš ti meni ovdje 'Thanks god', nego ćeš kazat 'Fala dragom Allahu'.",
     "ovo je Pazar ovo nije Pešter!",
@@ -67,11 +78,18 @@ EXTRA_ROASTS = [
 def is_owner(ctx):
     return discord.utils.get(ctx.author.roles, name=OWNER_ROLE_NAME)
 
+
+# Anti-tag spam („Ne smaraj“)
 tag_counter = {}
 
+
+# ─────────────────────────────
+# Events
+# ─────────────────────────────
 @bot.event
 async def on_ready():
     print(f"Discord bot online kao {bot.user}")
+
 
 @bot.event
 async def on_member_join(member):
@@ -79,6 +97,7 @@ async def on_member_join(member):
     if ch:
         await ch.send(WELCOME_MESSAGE_TEMPLATE.format(mention=member.mention))
         await ch.send(GIF_URL)
+
 
 @bot.event
 async def on_message(message):
@@ -95,9 +114,14 @@ async def on_message(message):
 
     await bot.process_commands(message)
 
+
+# ─────────────────────────────
+# Commands
+# ─────────────────────────────
 @bot.command()
 async def whomadeu(ctx):
     await ctx.send("🤖 Napravio me **DunyaStranger** 💻")
+
 
 @bot.command()
 async def mute(ctx, member: discord.Member=None):
@@ -106,6 +130,7 @@ async def mute(ctx, member: discord.Member=None):
     if member:
         return await ctx.send(f"Neću mute-ati {member.mention}, to je moj brat.")
     await ctx.send("Nisi naveo membera.")
+
 
 @bot.command()
 async def roast(ctx, member: discord.Member=None):
@@ -119,10 +144,11 @@ async def roast(ctx, member: discord.Member=None):
         f"{member.mention}, hoćeš mute?.",
         f"{member.mention}, get cooked.",
         f"{member.mention}, pametnija šija od tebe.",
-        f"{member.mention}, idi čitaj Kur'an.",
+        f"{member.mention}, idi čitaj Kur'an."
     ]
     roast = random.choice(base + [f"{member.mention}, {r}" for r in EXTRA_ROASTS])
     await ctx.send(roast)
+
 
 @bot.command()
 async def vm(ctx, *, member: discord.Member=None):
@@ -141,6 +167,7 @@ async def vm(ctx, *, member: discord.Member=None):
         return await ctx.send(f"{member.mention} sada ima ulogu {role.name} ✅")
     await ctx.send("Role ne postoji.")
 
+
 @bot.command()
 async def vf(ctx, *, member: discord.Member=None):
     if not is_owner(ctx):
@@ -158,23 +185,37 @@ async def vf(ctx, *, member: discord.Member=None):
         return await ctx.send(f"{member.mention} sada ima ulogu {role.name} ✅")
     await ctx.send("Role ne postoji.")
 
+
 @bot.command()
 async def help(ctx):
     embed = discord.Embed(title="📖 Ikhwa Bot Help", color=0x2ecc71)
-    embed.add_field(name="User komande", value="""
+
+    embed.add_field(
+        name="User komande",
+        value="""
 `!roast @user`
 `!mute @user`
 `!whomadeu`
-""", inline=False)
+""",
+        inline=False
+    )
 
     if is_owner(ctx):
-        embed.add_field(name="Admin komande", value="""
+        embed.add_field(
+            name="Admin komande",
+            value="""
 `!vm @user`
 `!vf @user`
-""", inline=False)
+""",
+            inline=False
+        )
 
     await ctx.send(embed=embed)
 
+
+# ─────────────────────────────
+# Telegram Forward System
+# ─────────────────────────────
 LAST_UPDATE_ID = 0
 
 async def check_telegram_updates():
@@ -187,45 +228,55 @@ async def check_telegram_updates():
             url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getUpdates?timeout=10&offset={LAST_UPDATE_ID+1}"
             data = requests.get(url).json()
 
-            if "result" in data:
-                for update in data["result"]:
-                    LAST_UPDATE_ID = update["update_id"]
+            for update in data.get("result", []):
+                LAST_UPDATE_ID = update["update_id"]
 
-                    if "message" not in update:
-                        continue
+                if "message" not in update:
+                    continue
 
-                    msg = update["message"]
-                    chat = msg.get("chat", {})
+                msg = update["message"]
+                chat = msg.get("chat", {})
 
-                    if chat.get("username", "").lower() != TELEGRAM_CHANNEL_USERNAME.replace("@","").lower():
-                        continue
+                if chat.get("username", "").lower() != TELEGRAM_CHANNEL_USERNAME.replace("@","").lower():
+                    continue
 
-                    if "text" in msg:
-                        await discord_channel.send(msg["text"])
+                if "text" in msg:
+                    await discord_channel.send(msg["text"])
 
-                    if "photo" in msg:
-                        file_id = msg["photo"][-1]["file_id"]
-                        fp = requests.get(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getFile?file_id={file_id}").json()["result"]["file_path"]
-                        url = f"https://api.telegram.org/file/bot{TELEGRAM_BOT_TOKEN}/{fp}"
-                        await discord_channel.send(url)
+                if "photo" in msg:
+                    file_id = msg["photo"][-1]["file_id"]
+                    fp = requests.get(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getFile?file_id={file_id}").json()["result"]["file_path"]
+                    url = f"https://api.telegram.org/file/bot{TELEGRAM_BOT_TOKEN}/{fp}"
+                    await discord_channel.send(url)
 
-                    if "video" in msg:
-                        file_id = msg["video"]["file_id"]
-                        fp = requests.get(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getFile?file_id={file_id}").json()["result"]["file_path"]
-                        url = f"https://api.telegram.org/file/bot{TELEGRAM_BOT_TOKEN}/{fp}"
-                        await discord_channel.send(url)
+                if "document" in msg:
+                    file_id = msg["document"]["file_id"]
+                    fp = requests.get(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getFile?file_id={file_id}").json()["result"]["file_path"]
+                    url = f"https://api.telegram.org/file/bot{TELEGRAM_BOT_TOKEN}/{fp}"
+                    await discord_channel.send(url)
 
-                    if "document" in msg:
-                        file_id = msg["document"]["file_id"]
-                        fp = requests.get(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getFile?file_id={file_id}").json()["result"]["file_path"]
-                        url = f"https://api.telegram.org/file/bot{TELEGRAM_BOT_TOKEN}/{fp}"
-                        await discord_channel.send(url)
+                if "video" in msg:
+                    file_id = msg["video"]["file_id"]
+                    fp = requests.get(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getFile?file_id={file_id}").json()["result"]["file_path"]
+                    url = f"https://api.telegram.org/file/bot{TELEGRAM_BOT_TOKEN}/{fp}"
+                    await discord_channel.send(url)
 
         except Exception as e:
             print("Greška:", e)
 
         await asyncio.sleep(1)
 
+
+# ─────────────────────────────
+# Discord.py 2.3 background task system
+# ─────────────────────────────
+@bot.event
+async def setup_hook():
+    asyncio.create_task(check_telegram_updates())
+
+
+# ─────────────────────────────
+# Start bot
+# ─────────────────────────────
 keep_alive()
-bot.loop.create_task(check_telegram_updates())
 bot.run(DISCORD_TOKEN)
