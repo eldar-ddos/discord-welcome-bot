@@ -168,4 +168,64 @@ async def help(ctx):
 """, inline=False)
 
     if is_owner(ctx):
-        embed.add_field(n_
+        embed.add_field(name="Admin komande", value="""
+`!vm @user`
+`!vf @user`
+""", inline=False)
+
+    await ctx.send(embed=embed)
+
+LAST_UPDATE_ID = 0
+
+async def check_telegram_updates():
+    global LAST_UPDATE_ID
+    await bot.wait_until_ready()
+    discord_channel = bot.get_channel(DISCORD_FORWARD_CHANNEL_ID)
+
+    while True:
+        try:
+            url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getUpdates?timeout=10&offset={LAST_UPDATE_ID+1}"
+            data = requests.get(url).json()
+
+            if "result" in data:
+                for update in data["result"]:
+                    LAST_UPDATE_ID = update["update_id"]
+
+                    if "message" not in update:
+                        continue
+
+                    msg = update["message"]
+                    chat = msg.get("chat", {})
+
+                    if chat.get("username", "").lower() != TELEGRAM_CHANNEL_USERNAME.replace("@","").lower():
+                        continue
+
+                    if "text" in msg:
+                        await discord_channel.send(msg["text"])
+
+                    if "photo" in msg:
+                        file_id = msg["photo"][-1]["file_id"]
+                        fp = requests.get(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getFile?file_id={file_id}").json()["result"]["file_path"]
+                        url = f"https://api.telegram.org/file/bot{TELEGRAM_BOT_TOKEN}/{fp}"
+                        await discord_channel.send(url)
+
+                    if "video" in msg:
+                        file_id = msg["video"]["file_id"]
+                        fp = requests.get(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getFile?file_id={file_id}").json()["result"]["file_path"]
+                        url = f"https://api.telegram.org/file/bot{TELEGRAM_BOT_TOKEN}/{fp}"
+                        await discord_channel.send(url)
+
+                    if "document" in msg:
+                        file_id = msg["document"]["file_id"]
+                        fp = requests.get(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getFile?file_id={file_id}").json()["result"]["file_path"]
+                        url = f"https://api.telegram.org/file/bot{TELEGRAM_BOT_TOKEN}/{fp}"
+                        await discord_channel.send(url)
+
+        except Exception as e:
+            print("Greška:", e)
+
+        await asyncio.sleep(1)
+
+keep_alive()
+bot.loop.create_task(check_telegram_updates())
+bot.run(DISCORD_TOKEN)
