@@ -54,7 +54,7 @@ async def on_ready():
     print(f"Bot je prijavljen kao {bot.user}")
 
 @bot.event
-async def on_member_join(member: discord.Member):
+async def on_member_join(member):
     channel = bot.get_channel(WELCOME_CHANNEL_ID)
     if channel is None:
         return
@@ -69,11 +69,9 @@ async def on_member_join(member: discord.Member):
 async def on_message(message):
     if message.author == bot.user:
         return
-
     if bot.user.mention in message.content:
         if random.randint(1, 100) <= 2:
             await message.channel.send("Ne smaraj, nadji posla ne budi dokon")
-
     await bot.process_commands(message)
 
 @bot.command()
@@ -88,7 +86,7 @@ async def mute(ctx, member: discord.Member = None):
     if member is not None:
         await ctx.send(f"🤖 Ja ti nisam rob, {ctx.author.mention}! Neću mute-ati {member.mention}. To je moj brat.")
     else:
-        await ctx.send(f"🤖 Ja ti nisam rob, {ctx.author.mention}. A nisi ni naveo koga da mute-am. Ha-ha-ha.")
+        await ctx.send(f"🤖 Ja ti nisam rob, {ctx.author.mention}. A nisi ni naveo koga da mute-am.")
 
 @bot.command()
 async def roast(ctx, member: discord.Member = None):
@@ -100,7 +98,7 @@ async def roast(ctx, member: discord.Member = None):
         f"{member.mention}, get cooked.",
         f"{member.mention}, pametnija šija od tebe.",
         f"{member.mention}, idi čitaj Kur'an.",
-        f"{member.mention}, selefi su pisali knjige, a ti još kucaš ‘!help’ da vidiš komande.",
+        f"{member.mention}, selefi su pisali knjige, a ti još kucaš ‘!help’.",
         f"{member.mention}, zbog tebe razmišljam da napustim server.",
         f"{member.mention}, selefi su dijelili znanje, a ti dijeliš memeove.",
         f"{member.mention}, rejan.",
