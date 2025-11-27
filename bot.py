@@ -67,6 +67,8 @@ EXTRA_ROASTS = [
 def is_owner(ctx):
     return discord.utils.get(ctx.author.roles, name=OWNER_ROLE_NAME)
 
+tag_counter = {}
+
 @bot.event
 async def on_ready():
     print(f"Discord bot online kao {bot.user}")
@@ -82,9 +84,15 @@ async def on_member_join(member):
 async def on_message(message):
     if message.author == bot.user:
         return
+
     if bot.user.mention in message.content:
-        if random.randint(1,100) <= 2:
-            await message.channel.send("Ne smaraj, nadji posla ne budi dokon")
+        uid = message.author.id
+        tag_counter[uid] = tag_counter.get(uid, 0) + 1
+
+        if tag_counter[uid] >= 10:
+            await message.channel.send("Ne smaraj")
+            tag_counter[uid] = 0
+
     await bot.process_commands(message)
 
 @bot.command()
@@ -102,7 +110,11 @@ async def mute(ctx, member: discord.Member=None):
 @bot.command()
 async def roast(ctx, member: discord.Member=None):
     if not member:
-        return await ctx.send("Taguj nekog.")
+        if ctx.message.mentions:
+            member = ctx.message.mentions[0]
+        else:
+            return await ctx.send("Taguj nekog.")
+
     base = [
         f"{member.mention}, hoćeš mute?.",
         f"{member.mention}, get cooked.",
@@ -113,27 +125,37 @@ async def roast(ctx, member: discord.Member=None):
     await ctx.send(roast)
 
 @bot.command()
-async def vm(ctx, member: discord.Member=None):
+async def vm(ctx, *, member: discord.Member=None):
     if not is_owner(ctx):
         return await ctx.send("❌ Nemaš ovlaštenja.")
-    if not member:
-        return await ctx.send("Taguj membera.")
+
+    if member is None:
+        if ctx.message.mentions:
+            member = ctx.message.mentions[0]
+        else:
+            return await ctx.send("Taguj membera.")
+
     role = discord.utils.get(ctx.guild.roles, name="🫂・BRAT")
     if role:
         await member.add_roles(role)
-        return await ctx.send(f"{member.mention} ima {role.name} ✅")
+        return await ctx.send(f"{member.mention} sada ima ulogu {role.name} ✅")
     await ctx.send("Role ne postoji.")
 
 @bot.command()
-async def vf(ctx, member: discord.Member=None):
+async def vf(ctx, *, member: discord.Member=None):
     if not is_owner(ctx):
         return await ctx.send("❌ Nemaš ovlaštenja.")
-    if not member:
-        return await ctx.send("Taguj membera.")
+
+    if member is None:
+        if ctx.message.mentions:
+            member = ctx.message.mentions[0]
+        else:
+            return await ctx.send("Taguj membera.")
+
     role = discord.utils.get(ctx.guild.roles, name="🫂・SESTRA")
     if role:
         await member.add_roles(role)
-        return await ctx.send(f"{member.mention} ima {role.name} ✅")
+        return await ctx.send(f"{member.mention} sada ima ulogu {role.name} ✅")
     await ctx.send("Role ne postoji.")
 
 @bot.command()
@@ -144,64 +166,6 @@ async def help(ctx):
 `!mute @user`
 `!whomadeu`
 """, inline=False)
+
     if is_owner(ctx):
-        embed.add_field(name="Admin komande", value="""
-`!vm @user`
-`!vf @user`
-""", inline=False)
-    await ctx.send(embed=embed)
-
-LAST_UPDATE_ID = 0
-
-async def check_telegram_updates():
-    global LAST_UPDATE_ID
-    await bot.wait_until_ready()
-    discord_channel = bot.get_channel(DISCORD_FORWARD_CHANNEL_ID)
-
-    while True:
-        try:
-            url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getUpdates?timeout=10&offset={LAST_UPDATE_ID+1}"
-            data = requests.get(url).json()
-
-            if "result" in data:
-                for update in data["result"]:
-                    LAST_UPDATE_ID = update["update_id"]
-
-                    if "message" not in update:
-                        continue
-
-                    msg = update["message"]
-                    chat = msg.get("chat", {})
-
-                    if chat.get("username", "").lower() != TELEGRAM_CHANNEL_USERNAME.replace("@","").lower():
-                        continue
-
-                    if "text" in msg:
-                        await discord_channel.send(msg["text"])
-
-                    if "photo" in msg:
-                        file_id = msg["photo"][-1]["file_id"]
-                        fp = requests.get(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getFile?file_id={file_id}").json()["result"]["file_path"]
-                        url = f"https://api.telegram.org/file/bot{TELEGRAM_BOT_TOKEN}/{fp}"
-                        await discord_channel.send(url)
-
-                    if "video" in msg:
-                        file_id = msg["video"]["file_id"]
-                        fp = requests.get(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getFile?file_id={file_id}").json()["result"]["file_path"]
-                        url = f"https://api.telegram.org/file/bot{TELEGRAM_BOT_TOKEN}/{fp}"
-                        await discord_channel.send(url)
-
-                    if "document" in msg:
-                        file_id = msg["document"]["file_id"]
-                        fp = requests.get(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getFile?file_id={file_id}").json()["result"]["file_path"]
-                        url = f"https://api.telegram.org/file/bot{TELEGRAM_BOT_TOKEN}/{fp}"
-                        await discord_channel.send(url)
-
-        except Exception as e:
-            print("Greška:", e)
-
-        await asyncio.sleep(1)
-
-keep_alive()
-bot.loop.create_task(check_telegram_updates())
-bot.run(DISCORD_TOKEN)
+        embed.add_field(n_
