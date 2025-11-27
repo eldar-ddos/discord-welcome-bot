@@ -11,7 +11,7 @@ DISCORD_TOKEN = os.getenv("DISCORD_TOKEN", "OVDE_STAVI_TOKEN")
 DISCORD_FORWARD_CHANNEL_ID = 1443341776265023699
 
 TELEGRAM_BOT_TOKEN = "7979257695:AAEoz60vxqTXCE0sZwfVfvug_R3oKv7eXPg"
-TELEGRAM_CHANNEL_USERNAME = "@ehlussunnah"
+TELEGRAM_CHANNEL_USERNAME = "@🌐・𝚎𝚑𝚕𝚞𝚜-𝚜𝚞𝚗𝚗𝚎𝚝-𝚟𝚎𝚕-𝚍ž𝚎𝚖𝚊𝚊𝚑-اهل-السنة-و-الجماعة"
 TELEGRAM_BOT_USERNAME = "@IkhwaForwardBot"
 
 WELCOME_CHANNEL_ID = 1428257626113966112
@@ -202,3 +202,4 @@ async def check_telegram_updates():
 keep_alive()
 bot.loop.create_task(check_telegram_updates())
 bot.run(DISCORD_TOKEN)
+
