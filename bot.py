@@ -117,6 +117,7 @@ async def on_message(message):
 # ─────────────────────────────
 # Commands
 # ─────────────────────────────
+
 @bot.command()
 async def whomadeu(ctx):
     await ctx.send("🤖 Napravio me **DunyaStranger** 💻")
@@ -149,7 +150,57 @@ async def roast(ctx, member: discord.Member=None):
     await ctx.send(roast)
 
 
-# NEW COMMAND 1 — testwithrabee (50/50 response)
+
+# NEW COMMAND — Quran (Arapski + Mehanović prevod)
+@bot.command()
+async def quran(ctx, *, arg=None):
+    if arg is None:
+        return await ctx.send("Koristi format: `!quran sura:ajet` (npr: `!quran 17:32`)")
+
+    if ":" not in arg:
+        return await ctx.send("Pogrešan format! Koristi npr: `!quran 2:255`")
+
+    try:
+        sura, ajet = arg.split(":")
+        sura = int(sura)
+        ajet = int(ajet)
+    except:
+        return await ctx.send("Brojevi sure/ajeta nisu validni.")
+
+    # Arapski tekst
+    arabic_url = f"https://api.alquran.cloud/v1/ayah/{sura}:{ajet}/quran-simple"
+
+    # Mehanović prijevod
+    bosnian_url = f"https://api.alquran.cloud/v1/ayah/{sura}:{ajet}/bs.me"
+
+    try:
+        arabic_data = requests.get(arabic_url).json()
+        bosnian_data = requests.get(bosnian_url).json()
+    except:
+        return await ctx.send("API trenutno nedostupan.")
+
+    if arabic_data["status"] != "OK" or bosnian_data["status"] != "OK":
+        return await ctx.send("Ajet nije pronađen. Provjeri broj sure i ajeta.")
+
+    arabic = arabic_data["data"]["text"]
+    bosnian = bosnian_data["data"]["text"]
+    surah_name = bosnian_data["data"]["surah"]["englishName"]
+    verse_number = bosnian_data["data"]["numberInSurah"]
+
+    embed = discord.Embed(
+        title=f"{surah_name} — {sura}:{verse_number}",
+        color=0x2ecc71
+    )
+
+    embed.add_field(name="🇸🇦 Arapski tekst:", value=arabic, inline=False)
+    embed.add_field(name="🇧🇦 Mehanović prijevod:", value=bosnian, inline=False)
+
+    await ctx.send(embed=embed)
+
+
+
+
+# testwithrabee
 @bot.command()
 async def testwithrabee(ctx, member: discord.Member=None):
     if not member:
@@ -166,7 +217,8 @@ async def testwithrabee(ctx, member: discord.Member=None):
     await ctx.send(random.choice(responses))
 
 
-# NEW COMMAND 2 — blud (Kur'anski ajet)
+
+# blud
 @bot.command()
 async def blud(ctx, member: discord.Member=None):
     if not member:
@@ -185,7 +237,8 @@ async def blud(ctx, member: discord.Member=None):
     await ctx.send(text)
 
 
-# NEW COMMAND 3 — doner (Sahih Buhari 5517 hadis)
+
+# doner
 @bot.command()
 async def doner(ctx):
     text = (
@@ -198,48 +251,6 @@ async def doner(ctx):
     )
     await ctx.send(text)
 
-
-# NEW COMMAND 4 — Quran (Arapski + Mehanović prevod)
-@bot.command()
-async def quran(ctx, *, arg=None):
-    if arg is None:
-        return await ctx.send("Koristi format: `!quran sura:ajet` (npr: `!quran 17:32`)")
-
-    if ":" not in arg:
-        return await ctx.send("Pogrešan format! Koristi npr: `!quran 2:255`")
-
-    try:
-        sura, ajet = arg.split(":")
-        sura = int(sura)
-        ajet = int(ajet)
-    except:
-        return await ctx.send("Brojevi sure/ajeta nisu validni.")
-
-    url = f"https://quranenc.com/api/v1/translation/verse/bosnian_mihanovich/{sura}/{ajet}"
-
-    try:
-        data = requests.get(url).json()
-    except:
-        return await ctx.send("Greška pri povezivanju sa API-jem.")
-
-    if "result" not in data:
-        return await ctx.send("Ajet nije pronađen. Provjeri broj sure i ajeta.")
-
-    result = data["result"]
-    arabic = result.get("arabic_text", "Nema arapskog teksta.")
-    bosnian = result.get("translation", "Nema prijevoda.")
-    surah_name = result.get("surah_name", "Nepoznata sura")
-    verse_number = result.get("verse_number", ajet)
-
-    embed = discord.Embed(
-        title=f"{surah_name} — {sura}:{verse_number}",
-        color=0x2ecc71
-    )
-
-    embed.add_field(name="🇸🇦 Arapski tekst:", value=arabic, inline=False)
-    embed.add_field(name="🇧🇦 Mehanović prijevod:", value=bosnian, inline=False)
-
-    await ctx.send(embed=embed)
 
 
 
@@ -261,6 +272,7 @@ async def vm(ctx, *, member: discord.Member=None):
     await ctx.send("Role ne postoji.")
 
 
+
 @bot.command()
 async def vf(ctx, *, member: discord.Member=None):
     if not is_owner(ctx):
@@ -277,6 +289,7 @@ async def vf(ctx, *, member: discord.Member=None):
         await member.add_roles(role)
         return await ctx.send(f"{member.mention} sada ima ulogu {role.name} ✅")
     await ctx.send("Role ne postoji.")
+
 
 
 @bot.command()
@@ -344,7 +357,7 @@ async def check_telegram_updates():
                 if "photo" in msg:
                     file_id = msg["photo"][-1]["file_id"]
                     fp = requests.get(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getFile?file_id={file_id}").json()["result"]["file_path"]
-                    url = f"https://api.telegram.org/file/bot{TELEGRAM_BOT_TOKEN}/{fp}"
+                    url = f"https://api.telegram.org/file/bot{TELEGRAM_BOT_TOKEN}/{fp}
                     await discord_channel.send(url)
 
                 if "document" in msg:
