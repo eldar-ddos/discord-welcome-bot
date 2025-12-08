@@ -49,7 +49,7 @@ intents.members = True
 intents.message_content = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
-bot.remove_command("help")  # custom help
+bot.remove_command("help")
 
 
 # ─────────────────────────────
@@ -79,7 +79,6 @@ def is_owner(ctx):
     return discord.utils.get(ctx.author.roles, name=OWNER_ROLE_NAME)
 
 
-# Anti-tag spam („Ne smaraj“)
 tag_counter = {}
 
 
@@ -150,6 +149,56 @@ async def roast(ctx, member: discord.Member=None):
     await ctx.send(roast)
 
 
+# NEW COMMAND 1 — testwithrabee (50/50 response)
+@bot.command()
+async def testwithrabee(ctx, member: discord.Member=None):
+    if not member:
+        if ctx.message.mentions:
+            member = ctx.message.mentions[0]
+        else:
+            return await ctx.send("Taguj nekog.")
+
+    responses = [
+        f"We tested {member.mention} with rabi', turns out he is **OFF the manhaj!**",
+        f"We tested {member.mention} with rabi', he is **ON the manhaj!**"
+    ]
+
+    await ctx.send(random.choice(responses))
+
+
+# NEW COMMAND 2 — blud (Kur'anski ajet)
+@bot.command()
+async def blud(ctx, member: discord.Member=None):
+    if not member:
+        if ctx.message.mentions:
+            member = ctx.message.mentions[0]
+        else:
+            member = ctx.author  
+
+    text = (
+        f"{member.mention}\n"
+        "وَلَا تَقْرَبُوا الزِّنَا ۖ إِنَّهُ كَانَ فَاحِشَةً وَسَاءَ سَبِيلًا\n"
+        "I ne približavajte se bludu, jer je to razvrat, kako je to ružan put!\n"
+        "Sura El-Isra (Noćno putovanje), ajet 32"
+    )
+
+    await ctx.send(text)
+
+
+# NEW COMMAND 3 — doner (Sahih Buhari 5517 hadis)
+@bot.command()
+async def doner(ctx):
+    text = (
+        "Prenosi se od Mihnef ibn Sulejma:\n\n"
+        "“Bio sam sa Poslanikom ﷺ na dan žrtve, pa je naredio da se podijeli meso, "
+        "i vidio sam da je jeo meso piletine.”\n\n"
+        "U drugim rivajetima stoji vrlo kratko:\n\n"
+        "“Vidio sam Allahovog Poslanika ﷺ kako jede piletinu.”\n\n"
+        "**Sahih Buhari 5517**"
+    )
+    await ctx.send(text)
+
+
 @bot.command()
 async def vm(ctx, *, member: discord.Member=None):
     if not is_owner(ctx):
@@ -196,6 +245,9 @@ async def help(ctx):
 `!roast @user`
 `!mute @user`
 `!whomadeu`
+`!testwithrabee @user`
+`!blud @user`
+`!doner`
 """,
         inline=False
     )
@@ -211,6 +263,7 @@ async def help(ctx):
         )
 
     await ctx.send(embed=embed)
+
 
 
 # ─────────────────────────────
