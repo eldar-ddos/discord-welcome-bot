@@ -199,6 +199,50 @@ async def doner(ctx):
     await ctx.send(text)
 
 
+# NEW COMMAND 4 — Quran (Arapski + Mehanović prevod)
+@bot.command()
+async def quran(ctx, *, arg=None):
+    if arg is None:
+        return await ctx.send("Koristi format: `!quran sura:ajet` (npr: `!quran 17:32`)")
+
+    if ":" not in arg:
+        return await ctx.send("Pogrešan format! Koristi npr: `!quran 2:255`")
+
+    try:
+        sura, ajet = arg.split(":")
+        sura = int(sura)
+        ajet = int(ajet)
+    except:
+        return await ctx.send("Brojevi sure/ajeta nisu validni.")
+
+    url = f"https://quranenc.com/api/v1/translation/verse/bosnian_mihanovich/{sura}/{ajet}"
+
+    try:
+        data = requests.get(url).json()
+    except:
+        return await ctx.send("Greška pri povezivanju sa API-jem.")
+
+    if "result" not in data:
+        return await ctx.send("Ajet nije pronađen. Provjeri broj sure i ajeta.")
+
+    result = data["result"]
+    arabic = result.get("arabic_text", "Nema arapskog teksta.")
+    bosnian = result.get("translation", "Nema prijevoda.")
+    surah_name = result.get("surah_name", "Nepoznata sura")
+    verse_number = result.get("verse_number", ajet)
+
+    embed = discord.Embed(
+        title=f"{surah_name} — {sura}:{verse_number}",
+        color=0x2ecc71
+    )
+
+    embed.add_field(name="🇸🇦 Arapski tekst:", value=arabic, inline=False)
+    embed.add_field(name="🇧🇦 Mehanović prijevod:", value=bosnian, inline=False)
+
+    await ctx.send(embed=embed)
+
+
+
 @bot.command()
 async def vm(ctx, *, member: discord.Member=None):
     if not is_owner(ctx):
@@ -248,6 +292,7 @@ async def help(ctx):
 `!testwithrabee @user`
 `!blud @user`
 `!doner`
+`!quran sura:ajet`
 """,
         inline=False
     )
