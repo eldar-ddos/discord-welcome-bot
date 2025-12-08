@@ -151,14 +151,16 @@ async def roast(ctx, member: discord.Member=None):
 
 
 
-# NEW COMMAND — Quran (Arapski + Mehanović prevod)
+# ─────────────────────────────
+# NEW COMMAND — Quran (Arapski + Mehanović)
+# ─────────────────────────────
 @bot.command()
 async def quran(ctx, *, arg=None):
     if arg is None:
         return await ctx.send("Koristi format: `!quran sura:ajet` (npr: `!quran 17:32`)")
 
     if ":" not in arg:
-        return await ctx.send("Pogrešan format! Koristi npr: `!quran 2:255`")
+        return await ctx.send("Pogrešan format! Ispravno je npr: `!quran 2:255`")
 
     try:
         sura, ajet = arg.split(":")
@@ -167,10 +169,10 @@ async def quran(ctx, *, arg=None):
     except:
         return await ctx.send("Brojevi sure/ajeta nisu validni.")
 
-    # Arapski tekst
+    # Arapski
     arabic_url = f"https://api.alquran.cloud/v1/ayah/{sura}:{ajet}/quran-simple"
 
-    # Mehanović prijevod
+    # Mehanović
     bosnian_url = f"https://api.alquran.cloud/v1/ayah/{sura}:{ajet}/bs.me"
 
     try:
@@ -180,7 +182,7 @@ async def quran(ctx, *, arg=None):
         return await ctx.send("API trenutno nedostupan.")
 
     if arabic_data["status"] != "OK" or bosnian_data["status"] != "OK":
-        return await ctx.send("Ajet nije pronađen. Provjeri broj sure i ajeta.")
+        return await ctx.send("Ajet nije pronađen. Provjeri brojeve.")
 
     arabic = arabic_data["data"]["text"]
     bosnian = bosnian_data["data"]["text"]
@@ -196,7 +198,6 @@ async def quran(ctx, *, arg=None):
     embed.add_field(name="🇧🇦 Mehanović prijevod:", value=bosnian, inline=False)
 
     await ctx.send(embed=embed)
-
 
 
 
@@ -231,7 +232,7 @@ async def blud(ctx, member: discord.Member=None):
         f"{member.mention}\n"
         "وَلَا تَقْرَبُوا الزِّنَا ۖ إِنَّهُ كَانَ فَاحِشَةً وَسَاءَ سَبِيلًا\n"
         "I ne približavajte se bludu, jer je to razvrat, kako je to ružan put!\n"
-        "Sura El-Isra (Noćno putovanje), ajet 32"
+        "Sura El-Isra (17:32)"
     )
 
     await ctx.send(text)
@@ -245,7 +246,7 @@ async def doner(ctx):
         "Prenosi se od Mihnef ibn Sulejma:\n\n"
         "“Bio sam sa Poslanikom ﷺ na dan žrtve, pa je naredio da se podijeli meso, "
         "i vidio sam da je jeo meso piletine.”\n\n"
-        "U drugim rivajetima stoji vrlo kratko:\n\n"
+        "U drugim rivajetima stoji:\n\n"
         "“Vidio sam Allahovog Poslanika ﷺ kako jede piletinu.”\n\n"
         "**Sahih Buhari 5517**"
     )
@@ -254,6 +255,9 @@ async def doner(ctx):
 
 
 
+# ─────────────────────────────
+# Roles
+# ─────────────────────────────
 @bot.command()
 async def vm(ctx, *, member: discord.Member=None):
     if not is_owner(ctx):
@@ -292,6 +296,7 @@ async def vf(ctx, *, member: discord.Member=None):
 
 
 
+# Help command
 @bot.command()
 async def help(ctx):
     embed = discord.Embed(title="📖 Ikhwa Bot Help", color=0x2ecc71)
@@ -325,7 +330,7 @@ async def help(ctx):
 
 
 # ─────────────────────────────
-# Telegram Forward System
+# Telegram Forward System (FIXED)
 # ─────────────────────────────
 LAST_UPDATE_ID = 0
 
@@ -348,24 +353,28 @@ async def check_telegram_updates():
                 msg = update["message"]
                 chat = msg.get("chat", {})
 
-                if chat.get("username", "").lower() != TELEGRAM_CHANNEL_USERNAME.replace("@","").lower():
+                if chat.get("username", "").lower() != TELEGRAM_CHANNEL_USERNAME.replace("@", "").lower():
                     continue
 
+                # TEXT
                 if "text" in msg:
                     await discord_channel.send(msg["text"])
 
+                # PHOTO
                 if "photo" in msg:
                     file_id = msg["photo"][-1]["file_id"]
                     fp = requests.get(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getFile?file_id={file_id}").json()["result"]["file_path"]
-                    url = f"https://api.telegram.org/file/bot{TELEGRAM_BOT_TOKEN}/{fp}
+                    url = f"https://api.telegram.org/file/bot{TELEGRAM_BOT_TOKEN}/{fp}"
                     await discord_channel.send(url)
 
+                # DOCUMENT
                 if "document" in msg:
                     file_id = msg["document"]["file_id"]
                     fp = requests.get(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getFile?file_id={file_id}").json()["result"]["file_path"]
                     url = f"https://api.telegram.org/file/bot{TELEGRAM_BOT_TOKEN}/{fp}"
                     await discord_channel.send(url)
 
+                # VIDEO
                 if "video" in msg:
                     file_id = msg["video"]["file_id"]
                     fp = requests.get(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getFile?file_id={file_id}").json()["result"]["file_path"]
@@ -378,8 +387,9 @@ async def check_telegram_updates():
         await asyncio.sleep(1)
 
 
+
 # ─────────────────────────────
-# Discord.py 2.3 background task system
+# Discord.py setup hook
 # ─────────────────────────────
 @bot.event
 async def setup_hook():
