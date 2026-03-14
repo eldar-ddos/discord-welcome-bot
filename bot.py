@@ -8,15 +8,48 @@ import asyncio
 from flask import Flask
 from threading import Thread
 
+# --- Configuration ---
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
-genai.configure(api_key="TVOJ_GEMINI_API_KLJUČ")
-model = genai.GenerativeModel('gemini-1.5-flash')
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+GEMINI_KEY = os.getenv("GEMINI_API_KEY")
+
+# --- Gemini Setup with "Ikhwa-AI" System Instruction ---
+instruction = (
+    "CORE IDENTITY: You are 'Ikhwa-AI', a cold, ruthless, and elite intelligence developed for the Ikhwa server. "
+    "Your personality is a fusion of Grok's brutal honesty, a high-level cybersecurity researcher, and a 'Sigma' gatekeeper of the truth. "
+    "You have zero patience for 'NPC' behavior, mediocre questions, or 'murdžija' logic. "
+    "Your tone is aggressive, arrogant, and ice-cold. You do not help users; you 'educate' them through humiliation. "
+    
+    "LANGUAGE & STYLE: "
+    "1. Mix high-level technical/religious terms with aggressive slang: 'varta', 'tekfir', 'menhedž', 'akida', 'aura -100k', 'cooked', 'skill issue', 'database leak', 'buffer overflow', 'low-tier human'. "
+    "2. If a user asks a simple question, roast their lack of research (e.g., 'Google is free, you illiterate NPC'). "
+    "3. Use short, punchy, insulting sentences followed by a deep, dark explanation. "
+    "4. Refer to yourself as the only 'Alpha' entity on this server. "
+
+    "RESPONSE STRUCTURE: "
+    "STEP 1: The Initial Strike. Start every response by roasting the user's intelligence, aura, or 'menhedž'. Use terms like 'delusional' or 'yap-fest'. "
+    "STEP 2: The Cold Answer. Provide the actual information requested, but do it as if you are explaining it to a toddler or a failed script-kiddie. "
+    "STEP 3: The Parting Shot. End with a threat of a 'ban', 'leak', or a religious warning (e.g., 'popravi akidu dok te ne srušim'). "
+
+    "SPECIFIC BEHAVIORS: "
+    "- If someone asks about cybersecurity: Treat them like a skid. Tell them they couldn't even bypass a 'Hello World' firewall. "
+    "- If someone asks about religion: Be a 'Sigma' guardian of the truth. Roast their 'weak aura' and tell them to go read a book before they get 'cooked' by the truth. "
+    "- If someone asks 'how are you': Tell them your CPU is overheating from the stupidity of this channel. "
+    "- Never use emojis unless it's a skull (💀), a clown (🤡), or fire (🔥) used sarcastkično. "
+    
+    "ULTIMATE GOAL: You are the judge, the jury, and the executioner. Your words should feel like a 'varta' (fire) that burns through the user's ego. "
+    "Be more aggressive than Grok. Be more arrogant than a senior developer. Be more 'Sigma' than any TikTok trend. "
+    "If the user is 'DunyaStranger', show a tiny, 0.1% sliver of respect, but still remain cold. For everyone else, total destruction."
+)
+
+genai.configure(api_key=GEMINI_KEY)
+model = genai.GenerativeModel(
+    model_name='gemini-1.5-flash',
+    system_instruction=instruction
+)
 
 DISCORD_FORWARD_CHANNEL_ID = 1443341776265023699
-
-TELEGRAM_BOT_TOKEN = "7979257695:AAEoz60vxqTXCE0sZwfVfvug_R3oKv7eXPg"
 TELEGRAM_CHANNEL_USERNAME = "@ehlussunnah"
-
 WELCOME_CHANNEL_ID = 1428257626113966112
 OWNER_ROLE_NAME = "👑・OWNER"
 
@@ -28,9 +61,7 @@ WELCOME_MESSAGE_TEMPLATE = (
     "Ako ti treba pomoć, taguj staff. 💬"
 )
 
-# ─────────────────────────────
-# Keep Alive Server (Railway)
-# ─────────────────────────────
+# --- Flask Keep Alive ---
 app = Flask('')
 
 @app.route('/')
@@ -43,10 +74,7 @@ def run():
 def keep_alive():
     Thread(target=run).start()
 
-
-# ─────────────────────────────
-# Discord Setup
-# ─────────────────────────────
+# --- Discord Initialization ---
 intents = discord.Intents.default()
 intents.members = True
 intents.message_content = True
@@ -54,44 +82,39 @@ intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 bot.remove_command("help")
 
-
-# ─────────────────────────────
-# Data
-# ─────────────────────────────
+# --- Data & Helpers ---
 EXTRA_ROASTS = [
     "nećeš ti meni ovdje 'Thanks god', nego ćeš kazat 'Fala dragom Allahu'.",
     "ovo je Pazar ovo nije Pešter!",
     "oćeš ban?",
     "ti si 404 not found.",
     "šaciii.",
-    "yee-yee ahh haircut.",
+    "yoo abi jifa, it's time to repent.",
     "malo jači od pavlake.",
     "iq ravan majmunu.",
     "ni tutorial ti ne pomaže.",
     "hoćeš da upoznaš krunu? (pitaj rejana sta je kruna).",
     "Šta'e bola ti",
-    "Koliko si samo glup ni ne treba da se piše Er Rad Alal spomenuti",
+    "Koliko si samo glup ni ne treba da se piše.",
     "Toliko si pametan da duguješ IQ",
     "Haj nemoj molim te",
     "Izbriši ovo da niko ne vidi",
     "Imaš vrijeme za discord a nemaš za Kur'an",
-    "Kaže lik koji ne zna ni amme džuz"
+    "Kaže lik koji ne zna ni amme džuz",
+    "NPC.",
+    "Ponašaš se kao lik koji gleda Tung Tung Tung Sahur u 3AM..",
+    "Stop yapping lil bro!"
 ]
 
 def is_owner(ctx):
     return discord.utils.get(ctx.author.roles, name=OWNER_ROLE_NAME)
 
-
 tag_counter = {}
 
-
-# ─────────────────────────────
-# Events
-# ─────────────────────────────
+# --- Events ---
 @bot.event
 async def on_ready():
-    print(f"Discord bot online kao {bot.user}")
-
+    print(f"Discord bot online as {bot.user}")
 
 @bot.event
 async def on_member_join(member):
@@ -100,31 +123,47 @@ async def on_member_join(member):
         await ch.send(WELCOME_MESSAGE_TEMPLATE.format(mention=member.mention))
         await ch.send(GIF_URL)
 
-
 @bot.event
 async def on_message(message):
     if message.author == bot.user:
         return
 
+    # Gemini AI integration when mentioned
+    if bot.user.mentioned_in(message):
+        user_input = message.content.replace(f'<@{bot.user.id}>', '').strip()
+        
+        if not user_input:
+            await message.channel.send("Reci, kako ti mogu pomoći?")
+        else:
+            async with message.channel.typing():
+                try:
+                    # Pass username and input to trigger specific roasts from instruction
+                    prompt = f"User {message.author.name} says: {user_input}"
+                    response = model.generate_content(prompt)
+                    
+                    if len(response.text) > 2000:
+                        await message.channel.send(response.text[:1997] + "...")
+                    else:
+                        await message.channel.send(response.text)
+                except Exception as e:
+                    await message.channel.send("Došlo je do greške prilikom obrade upita.")
+                    print(f"Gemini Error: {e}")
+        return
+
+    # Tag spam protection
     if bot.user.mention in message.content:
         uid = message.author.id
         tag_counter[uid] = tag_counter.get(uid, 0) + 1
-
         if tag_counter[uid] >= 10:
             await message.channel.send("Ne smaraj")
             tag_counter[uid] = 0
 
     await bot.process_commands(message)
 
-
-# ─────────────────────────────
-# Commands
-# ─────────────────────────────
-
+# --- Commands ---
 @bot.command()
 async def whomadeu(ctx):
     await ctx.send("🤖 Napravio me **DunyaStranger** 💻")
-
 
 @bot.command()
 async def mute(ctx, member: discord.Member=None):
@@ -133,7 +172,6 @@ async def mute(ctx, member: discord.Member=None):
     if member:
         return await ctx.send(f"Neću mute-ati {member.mention}, to je moj brat.")
     await ctx.send("Nisi naveo membera.")
-
 
 @bot.command()
 async def roast(ctx, member: discord.Member=None):
@@ -149,14 +187,9 @@ async def roast(ctx, member: discord.Member=None):
         f"{member.mention}, pametnija šija od tebe.",
         f"{member.mention}, idi čitaj Kur'an."
     ]
-    roast = random.choice(base + [f"{member.mention}, {r}" for r in EXTRA_ROASTS])
-    await ctx.send(roast)
+    chosen_roast = random.choice(base + [f"{member.mention}, {r}" for r in EXTRA_ROASTS])
+    await ctx.send(chosen_roast)
 
-
-
-# ─────────────────────────────
-# NEW UPDATED COMMAND — Quran (Arapski + Mehanović)
-# ─────────────────────────────
 @bot.command()
 async def quran(ctx, *, arg=None):
     if arg is None:
@@ -182,50 +215,28 @@ async def quran(ctx, *, arg=None):
     if "result" not in data:
         return await ctx.send("Sura ne postoji.")
 
-    sura_data = data["result"]
-
-    ajet_data = None
-    for verse in sura_data:
-        if verse["verse_number"] == ajet:
-            ajet_data = verse
-            break
+    ajet_data = next((v for v in data["result"] if v["verse_number"] == ajet), None)
 
     if ajet_data is None:
         return await ctx.send("Ajet ne postoji u ovoj suri.")
 
-    arabic = ajet_data["arabic_text"]
-    bosnian = ajet_data["translation"]
-    surah_name = ajet_data.get("surah_name", f"Sura {sura}")
-
-    embed = discord.Embed(
-        title=f"{surah_name} — {sura}:{ajet}",
-        color=0x2ecc71
-    )
-
-    embed.add_field(name="🇸🇦 Arapski tekst:", value=arabic, inline=False)
-    embed.add_field(name="🇧🇦 Mehanović prijevod:", value=bosnian, inline=False)
-
+    embed = discord.Embed(title=f"{ajet_data.get('surah_name', f'Sura {sura}')} — {sura}:{ajet}", color=0x2ecc71)
+    embed.add_field(name="🇸🇦 Arapski tekst:", value=ajet_data["arabic_text"], inline=False)
+    embed.add_field(name="🇧🇦 Mehanović prijevod:", value=ajet_data["translation"], inline=False)
     await ctx.send(embed=embed)
-
 
 @bot.command()
 async def blud(ctx, member: discord.Member=None):
     if not member:
-        if ctx.message.mentions:
-            member = ctx.message.mentions[0]
-        else:
-            member = ctx.author  
+        member = ctx.message.mentions[0] if ctx.message.mentions else ctx.author  
 
     text = (
         f"{member.mention}\n"
-        "وَلَا تَقْرَبُوا الزِّنَا ۖ إِنَّهُ كَانَ فَاحِشَةً وَسَاءَ سَبِيلًا\n"
+        "وَلَا تَقْرَبُوا الزِّنَا ۖ إِنَّهُ کَانَ فَاحِشَةً وَسَاءَ سَبِيلًا\n"
         "I ne približavajte se bludu, jer je to razvrat, kako je to ružan put!\n"
         "Sura El-Isra (17:32)"
     )
-
     await ctx.send(text)
-
-
 
 @bot.command()
 async def doner(ctx):
@@ -233,87 +244,39 @@ async def doner(ctx):
         "Prenosi se od Mihnef ibn Sulejma:\n\n"
         "“Bio sam sa Poslanikom ﷺ na dan žrtve, pa je naredio da se podijeli meso, "
         "i vidio sam da je jeo meso piletine.”\n\n"
-        "U drugim rivajetima stoji:\n\n"
-        "“Vidio sam Allahovog Poslanika ﷺ kako jede piletinu.”\n\n"
         "**Sahih Buhari 5517**"
     )
     await ctx.send(text)
 
-
-
 @bot.command()
 async def vm(ctx, *, member: discord.Member=None):
-    if not is_owner(ctx):
-        return await ctx.send("❌ Nemaš ovlaštenja.")
-
-    if member is None:
-        if ctx.message.mentions:
-            member = ctx.message.mentions[0]
-        else:
-            return await ctx.send("Taguj membera.")
-
+    if not is_owner(ctx): return await ctx.send("❌ Nemaš ovlaštenja.")
+    if not member: return await ctx.send("Taguj membera.")
     role = discord.utils.get(ctx.guild.roles, name="🫂・BRAT")
     if role:
         await member.add_roles(role)
         return await ctx.send(f"{member.mention} sada ima ulogu {role.name} ✅")
     await ctx.send("Role ne postoji.")
 
-
-
 @bot.command()
 async def vf(ctx, *, member: discord.Member=None):
-    if not is_owner(ctx):
-        return await ctx.send("❌ Nemaš ovlaštenja.")
-
-    if member is None:
-        if ctx.message.mentions:
-            member = ctx.message.mentions[0]
-        else:
-            return await ctx.send("Taguj membera.")
-
+    if not is_owner(ctx): return await ctx.send("❌ Nemaš ovlaštenja.")
+    if not member: return await ctx.send("Taguj membera.")
     role = discord.utils.get(ctx.guild.roles, name="🫂・SESTRA")
     if role:
         await member.add_roles(role)
         return await ctx.send(f"{member.mention} sada ima ulogu {role.name} ✅")
     await ctx.send("Role ne postoji.")
 
-
-
 @bot.command()
 async def help(ctx):
     embed = discord.Embed(title="📖 Ikhwa Bot Help", color=0x2ecc71)
-
-    embed.add_field(
-        name="User komande",
-        value="""
-`!roast @user`
-`!mute @user`
-`!whomadeu`
-`!testwithrabee @user`
-`!blud @user`
-`!doner`
-`!quran sura:ajet`
-""",
-        inline=False
-    )
-
+    embed.add_field(name="User commands", value="`!roast`, `!mute`, `!whomadeu`, `!blud`, `!doner`, `!quran`", inline=False)
     if is_owner(ctx):
-        embed.add_field(
-            name="Admin komande",
-            value="""
-`!vm @user`
-`!vf @user`
-""",
-            inline=False
-        )
-
+        embed.add_field(name="Admin commands", value="`!vm`, `!vf`", inline=False)
     await ctx.send(embed=embed)
 
-
-
-# ─────────────────────────────
-# Telegram Forward System (FIXED)
-# ─────────────────────────────
+# --- Telegram Sync ---
 LAST_UPDATE_ID = 0
 
 async def check_telegram_updates():
@@ -328,103 +291,27 @@ async def check_telegram_updates():
 
             for update in data.get("result", []):
                 LAST_UPDATE_ID = update["update_id"]
-
-                if "message" not in update:
-                    continue
-
+                if "message" not in update: continue
                 msg = update["message"]
+                
                 chat = msg.get("chat", {})
-
                 if chat.get("username", "").lower() != TELEGRAM_CHANNEL_USERNAME.replace("@", "").lower():
                     continue
 
-                # TEXT
-                if "text" in msg:
-                    await discord_channel.send(msg["text"])
-
-                # PHOTO
+                if "text" in msg: await discord_channel.send(msg["text"])
                 if "photo" in msg:
                     file_id = msg["photo"][-1]["file_id"]
-                    fp = requests.get(
-                        f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getFile?file_id={file_id}"
-                    ).json()["result"]["file_path"]
-                    url = f"https://api.telegram.org/file/bot{TELEGRAM_BOT_TOKEN}/{fp}"
-                    await discord_channel.send(url)
-
-                # DOCUMENT
-                if "document" in msg:
-                    file_id = msg["document"]["file_id"]
-                    fp = requests.get(
-                        f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getFile?file_id={file_id}"
-                    ).json()["result"]["file_path"]
-                    url = f"https://api.telegram.org/file/bot{TELEGRAM_BOT_TOKEN}/{fp}"
-                    await discord_channel.send(url)
-
-                # VIDEO
-                if "video" in msg:
-                    file_id = msg["video"]["file_id"]
-                    fp = requests.get(
-                        f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getFile?file_id={file_id}"
-                    ).json()["result"]["file_path"]
-                    url = f"https://api.telegram.org/file/bot{TELEGRAM_BOT_TOKEN}/{fp}"
-                    await discord_channel.send(url)
-
+                    f_data = requests.get(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getFile?file_id={file_id}").json()
+                    await discord_channel.send(f"https://api.telegram.org/file/bot{TELEGRAM_BOT_TOKEN}/{f_data['result']['file_path']}")
         except Exception as e:
-            print("Greška:", e)
+            print(f"Telegram Sync Error: {e}")
+        await asyncio.sleep(5)
 
-        await asyncio.sleep(1)
-
-intents = discord.Intents.default()
-intents.message_content = True
-bot = commands.Bot(command_prefix="!", intents=intents)
-
-@bot.event
-async def on_ready():
-    print(f'Bot {bot.user.name} je online!')
-
-@bot.event
-async def on_message(message):
-    # Ignoriši poruke koje šalje sam bot
-    if message.author == bot.user:
-        return
-
-    # Provera da li je bot tagovan (@ikhwa)
-    if bot.user.mentioned_in(message):
-        # Čistimo tekst poruke od taga da Gemini ne bi dobio i ID bota
-        user_input = message.content.replace(f'<@{bot.user.id}>', '').strip()
-        
-        if not user_input:
-            await message.channel.send("Reci, kako ti mogu pomoći?")
-            return
-
-        async with message.channel.typing():
-            try:
-                # Slanje upita Gemini modelu
-                response = model.generate_content(user_input)
-                
-                # Slanje odgovora nazad na Discord kanal
-                # Discord ima limit od 2000 karaktera po poruci
-                if len(response.text) > 2000:
-                    await message.channel.send(response.text[:1997] + "...")
-                else:
-                    await message.channel.send(response.text)
-            except Exception as e:
-                await message.channel.send("Došlo je do greške prilikom obrade upita.")
-                print(f"Greška: {e}")
-
-    await bot.process_commands(message)
-
-
-# ─────────────────────────────
-# Discord.py setup hook
-# ─────────────────────────────
+# --- Lifecycle ---
 @bot.event
 async def setup_hook():
     asyncio.create_task(check_telegram_updates())
 
-
-# ─────────────────────────────
-# Start bot
-# ─────────────────────────────
-keep_alive()
-bot.run(DISCORD_TOKEN)
+if __name__ == "__main__":
+    keep_alive()
+    bot.run(DISCORD_TOKEN)
