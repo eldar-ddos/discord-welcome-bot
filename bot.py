@@ -20,6 +20,7 @@ from threading import Thread
 # --- Configuration ---
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+# Koristimo tvoj ključ koji si poslao na slici
 GEMINI_KEY = os.getenv("GEMINI_API_KEY")
 
 # --- Gemini Setup with "Ikhwa-AI" System Instruction ---
@@ -52,9 +53,19 @@ instruction = (
 )
 
 genai.configure(api_key=GEMINI_KEY)
+
+# DODATO: Isključivanje filtera da bi bot mogao da bude agresivan bez blokade
+safety_settings = [
+    {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
+    {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
+    {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
+    {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"},
+]
+
 model = genai.GenerativeModel(
     model_name='gemini-1.5-flash',
-    system_instruction=instruction
+    system_instruction=instruction,
+    safety_settings=safety_settings
 )
 
 DISCORD_FORWARD_CHANNEL_ID = 1443341776265023699
@@ -146,7 +157,6 @@ async def on_message(message):
         else:
             async with message.channel.typing():
                 try:
-                    # Pass username and input to trigger specific roasts from instruction
                     prompt = f"User {message.author.name} says: {user_input}"
                     response = model.generate_content(prompt)
                     
