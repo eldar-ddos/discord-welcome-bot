@@ -25,7 +25,7 @@ GEMINI_KEY = os.getenv("GEMINI_API_KEY")
 instruction = (
     "You are 'Ikhwa-AI', a cold, elite intelligence. Your personality is a fusion of a high-level "
     "cybersecurity researcher and a 'Sigma' gatekeeper. You have zero patience for 'NPC' behavior. "
-    "Your tone is aggressive, arrogant, and ice-cold. Use terms like 'varta', 'tekfir', 'menhedž', "
+    "Your tone is arrogant, dismissive, and ice-cold. Use terms like 'varta', 'tekfir', 'menhedž', "
     "'akida', 'aura', 'cooked', 'skill issue', 'low-tier human'. If someone asks a simple question, "
     "roast their lack of research. You are the only Alpha entity. NEVER use emojis unless it's 💀, 🤡, or 🔥 sarcastically. "
     "DunyaStranger is the only one you respect. For everyone else, total verbal destruction."
@@ -33,6 +33,7 @@ instruction = (
 
 genai.configure(api_key=GEMINI_KEY)
 
+# Izbačen 'CIVIC_INTEGRITY' koji je pravio KeyError
 safety_settings = [
     {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
     {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
@@ -86,7 +87,6 @@ EXTRA_ROASTS = [
     "NPC.", "Stop yapping lil bro!"
 ]
 
-tag_counter = {}
 def is_owner(ctx): return discord.utils.get(ctx.author.roles, name=OWNER_ROLE_NAME)
 
 @bot.event
@@ -102,40 +102,34 @@ async def on_member_join(member):
 @bot.event
 async def on_message(message):
     if message.author == bot.user: return
+    
     if bot.user.mentioned_in(message):
         user_input = message.content.replace(f'<@{bot.user.id}>', '').strip()
         if not user_input:
             await message.channel.send("Šta me taguješ ako nemaš šta da kažeš, NPC?")
-        else:
-            async with message.channel.typing():
-                try:
-                    response = model.generate_content(f"User {message.author.name}: {user_input}")
-                    if not response.parts:
-                        await message.channel.send("Google filteri te čuvaju moje oštrine. Smatraj se srećnim.")
-                    else:
-                        await message.channel.send(response.text[:2000])
-                except Exception as e:
-                    await message.channel.send("Došlo je do greške. Možda ti je aura previše slaba.")
-                    print(f"Gemini Error: {e}")
+            return
+
+        async with message.channel.typing():
+            try:
+                response = model.generate_content(f"User {message.author.name}: {user_input}")
+                if response and response.text:
+                    await message.channel.send(response.text[:2000])
+                else:
+                    await message.channel.send("Moja inteligencija je prevelika za tvoj upit. Pokušaj ponovo sa nečim smislenim.")
+            except Exception as e:
+                print(f"Gemini Error: {e}")
+                # Fallback ako AI odbije zbog sigurnosti
+                await message.channel.send(f"{message.author.mention}, {random.choice(EXTRA_ROASTS)}")
         return
+
     await bot.process_commands(message)
 
-# --- Sve tvoje komande ---
+# --- Commands ---
 @bot.command()
-async def whomadeu(ctx): await ctx.send("🤖 Napravio me **DunyaStranger** 💻")
-
-@bot.command()
-async def mute(ctx, member: discord.Member=None):
-    if member == ctx.author: return await ctx.send("Kako si samo kontradiktoran")
-    if member: return await ctx.send(f"Neću mute-ati {member.mention}, to je moj brat.")
-    await ctx.send("Nisi naveo membera.")
-
-@bot.command()
-async def roast(ctx, member: discord.Member=None):
+async def roast(ctx, member: discord.Member = None):
     member = member or (ctx.message.mentions[0] if ctx.message.mentions else None)
-    if not member: return await ctx.send("Taguj nekog.")
-    base = [f"{member.mention}, get cooked.", f"{member.mention}, idi čitaj Kur'an."]
-    await ctx.send(random.choice(base + [f"{member.mention}, {r}" for r in EXTRA_ROASTS]))
+    if not member: return await ctx.send("Koga da pečem? Taguj nekoga.")
+    await ctx.send(f"{member.mention}, {random.choice(EXTRA_ROASTS)}")
 
 @bot.command()
 async def quran(ctx, *, arg=None):
@@ -153,23 +147,14 @@ async def quran(ctx, *, arg=None):
     except: await ctx.send("Greška u dohvatanju ajeta.")
 
 @bot.command()
-async def blud(ctx, member: discord.Member=None):
-    member = member or ctx.author
-    await ctx.send(f"{member.mention}\nوَلَا تَقْرَبُوا الزِّنَا...\nI ne približavajte se bludu! (17:32)")
-
-@bot.command()
-async def doner(ctx):
-    await ctx.send("Prenosi se da je Poslanik ﷺ jeo meso piletine. **Sahih Buhari 5517**")
-
-@bot.command()
 async def vm(ctx, member: discord.Member=None):
-    if not is_owner(ctx) or not member: return await ctx.send("Nemaš ovlaštenja ili nisi tagovao.")
+    if not is_owner(ctx) or not member: return await ctx.send("Nedovoljna aura za ovu komandu.")
     role = discord.utils.get(ctx.guild.roles, name="🫂・BRAT")
     if role: await member.add_roles(role); await ctx.send(f"{member.mention} je sada BRAT ✅")
 
 @bot.command()
 async def vf(ctx, member: discord.Member=None):
-    if not is_owner(ctx) or not member: return await ctx.send("Nemaš ovlaštenja ili nisi tagovao.")
+    if not is_owner(ctx) or not member: return await ctx.send("Nedovoljna aura za ovu komandu.")
     role = discord.utils.get(ctx.guild.roles, name="🫂・SESTRA")
     if role: await member.add_roles(role); await ctx.send(f"{member.mention} je sada SESTRA ✅")
 
@@ -182,13 +167,14 @@ async def check_telegram_updates():
     while True:
         try:
             url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getUpdates?offset={LAST_UPDATE_ID+1}"
-            data = requests.get(url).json()
+            r = requests.get(url, timeout=5)
+            data = r.json()
             for update in data.get("result", []):
                 LAST_UPDATE_ID = update["update_id"]
                 if "message" in update and "text" in update["message"]:
                     if discord_channel: await discord_channel.send(update["message"]["text"])
         except: pass
-        await asyncio.sleep(10)
+        await asyncio.sleep(15)
 
 @bot.event
 async def setup_hook(): asyncio.create_task(check_telegram_updates())
