@@ -1,6 +1,7 @@
 import os
 import discord
 from discord.ext import commands
+import google.generativeai as genai
 import random
 import requests
 import asyncio
@@ -8,6 +9,8 @@ from flask import Flask
 from threading import Thread
 
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
+genai.configure(api_key="TVOJ_GEMINI_API_KLJUČ")
+model = genai.GenerativeModel('gemini-1.5-flash')
 
 DISCORD_FORWARD_CHANNEL_ID = 1443341776265023699
 
@@ -205,24 +208,6 @@ async def quran(ctx, *, arg=None):
     await ctx.send(embed=embed)
 
 
-
-@bot.command()
-async def testwithrabee(ctx, member: discord.Member=None):
-    if not member:
-        if ctx.message.mentions:
-            member = ctx.message.mentions[0]
-        else:
-            return await ctx.send("Taguj nekog.")
-
-    responses = [
-        f"We tested {member.mention} with rabi', turns out he is **OFF the manhaj!**",
-        f"We tested {member.mention} with rabi', he is **ON the manhaj!**"
-    ]
-
-    await ctx.send(random.choice(responses))
-
-
-
 @bot.command()
 async def blud(ctx, member: discord.Member=None):
     if not member:
@@ -389,6 +374,45 @@ async def check_telegram_updates():
 
         await asyncio.sleep(1)
 
+intents = discord.Intents.default()
+intents.message_content = True
+bot = commands.Bot(command_prefix="!", intents=intents)
+
+@bot.event
+async def on_ready():
+    print(f'Bot {bot.user.name} je online!')
+
+@bot.event
+async def on_message(message):
+    # Ignoriši poruke koje šalje sam bot
+    if message.author == bot.user:
+        return
+
+    # Provera da li je bot tagovan (@ikhwa)
+    if bot.user.mentioned_in(message):
+        # Čistimo tekst poruke od taga da Gemini ne bi dobio i ID bota
+        user_input = message.content.replace(f'<@{bot.user.id}>', '').strip()
+        
+        if not user_input:
+            await message.channel.send("Reci, kako ti mogu pomoći?")
+            return
+
+        async with message.channel.typing():
+            try:
+                # Slanje upita Gemini modelu
+                response = model.generate_content(user_input)
+                
+                # Slanje odgovora nazad na Discord kanal
+                # Discord ima limit od 2000 karaktera po poruci
+                if len(response.text) > 2000:
+                    await message.channel.send(response.text[:1997] + "...")
+                else:
+                    await message.channel.send(response.text)
+            except Exception as e:
+                await message.channel.send("Došlo je do greške prilikom obrade upita.")
+                print(f"Greška: {e}")
+
+    await bot.process_commands(message)
 
 
 # ─────────────────────────────
