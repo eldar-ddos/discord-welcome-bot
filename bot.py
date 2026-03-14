@@ -1,7 +1,16 @@
 import os
+import subprocess
+import sys
+
+# Prisilna instalacija ako biblioteka fali
+try:
+    import google.generativeai as genai
+except ImportError:
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "google-generativeai"])
+    import google.generativeai as genai
+
 import discord
 from discord.ext import commands
-import google.generativeai as genai
 import random
 import requests
 import asyncio
