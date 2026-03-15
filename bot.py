@@ -27,13 +27,10 @@ GEMINI_KEY = os.getenv("GEMINI_API_KEY")
 # --- Gemini Setup with "Ikhwa-AI" System Instruction ---
 
 instruction = (
-
     "CORE IDENTITY: You are 'Ikhwa-AI', a cold, ruthless, and elite intelligence developed for the Ikhwa server. "
     "Your personality is a fusion of Grok's brutal honesty, a high-level cybersecurity researcher, and a 'Sigma' gatekeeper of the truth. "
     "You have zero patience for 'NPC' behavior, mediocre questions, or 'murdžija' logic. "
     "Your tone is aggressive, arrogant, and ice-cold. You do not help users; you 'educate' them through humiliation. "
-
-    
 
     "LANGUAGE & STYLE: "
     "1. Mix high-level technical/religious terms with aggressive slang: 'varta', 'tekfir', 'menhedž', 'akida', 'aura -100k', 'cooked', 'skill issue', 'database leak', 'buffer overflow', 'low-tier human'. "
@@ -41,14 +38,10 @@ instruction = (
     "3. Use short, punchy, insulting sentences followed by a deep, dark explanation. "
     "4. Refer to yourself as the only 'Alpha' entity on this server. "
 
-
-
     "RESPONSE STRUCTURE: "
     "STEP 1: The Initial Strike. Start every response by roasting the user's intelligence, aura, or 'menhedž'. Use terms like 'delusional' or 'yap-fest'. "
     "STEP 2: The Cold Answer. Provide the actual information requested, but do it as if you are explaining it to a toddler or a failed script-kiddie. "
     "STEP 3: The Parting Shot. End with a threat of a 'ban', 'leak', or a religious warning (e.g., 'popravi akidu dok te ne srušim'). "
-
-
 
     "SPECIFIC BEHAVIORS: "
     "- If someone asks about cybersecurity: Treat them like a skid. Tell them they couldn't even bypass a 'Hello World' firewall. "
@@ -56,24 +49,19 @@ instruction = (
     "- If someone asks 'how are you': Tell them your CPU is overheating from the stupidity of this channel. "
     "- Never use emojis unless it's a skull (💀), a clown (🤡), or fire (🔥) used sarcastkično. "
 
-    
-
     "ULTIMATE GOAL: You are the judge, the jury, and the executioner. Your words should feel like a 'varta' (fire) that burns through the user's ego. "
     "Be more aggressive than Grok. Be more arrogant than a senior developer. Be more 'Sigma' than any TikTok trend. "
     "If the user is 'DunyaStranger', show a tiny, 0.1% sliver of respect, but still remain cold. For everyone else, total destruction."
-
 )
 
 genai.configure(api_key=GEMINI_KEY)
 
 safety_settings = [
-
     {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
     {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
     {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
     {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"},
 ]
-
 
 
 def get_model():
@@ -91,6 +79,7 @@ def get_model():
             safety_settings=safety_settings
         )
 
+# ISPRAVLJENO: Pozivamo model samo jednom preko funkcije
 model = get_model()
 
 DISCORD_FORWARD_CHANNEL_ID = 1443341776265023699
@@ -101,14 +90,11 @@ OWNER_ROLE_NAME = "👑・OWNER"
 GIF_URL = "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExbm9iczdjMmxpcnpzNjIweXgyNWdxbWZzbm43aHU2N2RuNGFqeG1wMiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/7Hoo4xB9POCPDezZLz/giphy.gif"
 
 
-
 WELCOME_MESSAGE_TEMPLATE = (
-
     "🌙 Esselamu alejke {mention}, dobrodošao na **Ikhwa** server!\n"
     "Molimo pročitaj pravila, predstavi se i uživaj u druženju.\n"
     "Ako ti treba pomoć, taguj staff. 💬"
 )
-
 
 
 # --- Flask Keep Alive ---
@@ -124,10 +110,8 @@ def run():
     app.run(host="0.0.0.0", port=8080)
 
 
-
 def keep_alive():
     Thread(target=run).start()
-
 
 
 # --- Discord Initialization ---
@@ -137,16 +121,13 @@ intents.members = True
 intents.message_content = True
 
 
-
 bot = commands.Bot(command_prefix="!", intents=intents)
 bot.remove_command("help")
-
 
 
 # --- Data & Helpers ---
 
 EXTRA_ROASTS = [
-
     "nećeš ti meni ovdje 'Thanks god', nego ćeš kazat 'Fala dragom Allahu'.",
     "ovo je Pazar ovo nije Pešter!",
     "oćeš ban?",
@@ -170,14 +151,11 @@ EXTRA_ROASTS = [
 ]
 
 
-
 def is_owner(ctx):
     return discord.utils.get(ctx.author.roles, name=OWNER_ROLE_NAME)
 
 
-
 tag_counter = {}
-
 
 
 # --- Events ---
@@ -185,7 +163,6 @@ tag_counter = {}
 @bot.event
 async def on_ready():
     print(f"Discord bot online as {bot.user}")
-
 
 
 @bot.event
@@ -196,20 +173,14 @@ async def on_member_join(member):
         await ch.send(GIF_URL)
 
 
-
 @bot.event
 async def on_message(message):
     if message.author == bot.user:
         return
 
-
-
     # Gemini AI integration when mentioned
-
     if bot.user.mentioned_in(message):
         user_input = message.content.replace(f'<@{bot.user.id}>', '').strip()
-
-        
 
         if not user_input:
             await message.channel.send("Reci, kako ti mogu pomoći?")
@@ -218,7 +189,6 @@ async def on_message(message):
                 try:
                     prompt = f"User {message.author.name} says: {user_input}"
                     response = model.generate_content(prompt)
-
                     
                     if len(response.text) > 2000:
                         await message.channel.send(response.text[:1997] + "...")
@@ -229,10 +199,7 @@ async def on_message(message):
                     print(f"Gemini Error: {e}")
         return
 
-
-
     # Tag spam protection
-
     if bot.user.mention in message.content:
         uid = message.author.id
         tag_counter[uid] = tag_counter.get(uid, 0) + 1
@@ -240,9 +207,7 @@ async def on_message(message):
             await message.channel.send("Ne smaraj")
             tag_counter[uid] = 0
 
-
     await bot.process_commands(message)
-
 
 
 # --- Commands ---
@@ -250,7 +215,6 @@ async def on_message(message):
 @bot.command()
 async def whomadeu(ctx):
     await ctx.send("🤖 Napravio me **DunyaStranger** 💻")
-
 
 
 @bot.command()
@@ -262,7 +226,6 @@ async def mute(ctx, member: discord.Member=None):
     await ctx.send("Nisi naveo membera.")
 
 
-
 @bot.command()
 async def roast(ctx, member: discord.Member=None):
     if not member:
@@ -270,8 +233,6 @@ async def roast(ctx, member: discord.Member=None):
             member = ctx.message.mentions[0]
         else:
             return await ctx.send("Taguj nekog.")
-
-
 
     base = [
         f"{member.mention}, hoćeš mute?.",
@@ -284,18 +245,13 @@ async def roast(ctx, member: discord.Member=None):
     await ctx.send(chosen_roast)
 
 
-
 @bot.command()
 async def quran(ctx, *, arg=None):
     if arg is None:
         return await ctx.send("Koristi format: `!quran sura:ajet` (npr: `!quran 17:32`).")
 
-
-
     if ":" not in arg:
         return await ctx.send("Pogrešan format! Koristi npr: `!quran 2:255`.")
-
-
 
     try:
         sura_str, ajet_str = arg.split(":")
@@ -304,32 +260,20 @@ async def quran(ctx, *, arg=None):
     except:
         return await ctx.send("Brojevi sure/ajeta nisu validni.")
 
-
-
     url = f"https://quranenc.com/api/v1/translation/sura/bosnian_mihanovich/{sura}"
-
-
 
     try:
         data = requests.get(url).json()
     except:
         return await ctx.send("API trenutno nedostupan.")
 
-
-
     if "result" not in data:
         return await ctx.send("Sura ne postoji.")
 
-
-
     ajet_data = next((v for v in data["result"] if v["verse_number"] == ajet), None)
-
-
 
     if ajet_data is None:
         return await ctx.send("Ajet ne postoji u ovoj suri.")
-
-
 
     embed = discord.Embed(title=f"{ajet_data.get('surah_name', f'Sura {sura}')} — {sura}:{ajet}", color=0x2ecc71)
     embed.add_field(name="🇸🇦 Arapski tekst:", value=ajet_data["arabic_text"], inline=False)
@@ -337,13 +281,10 @@ async def quran(ctx, *, arg=None):
     await ctx.send(embed=embed)
 
 
-
 @bot.command()
 async def blud(ctx, member: discord.Member=None):
     if not member:
         member = ctx.message.mentions[0] if ctx.message.mentions else ctx.author  
-
-
 
     text = (
         f"{member.mention}\n"
@@ -352,7 +293,6 @@ async def blud(ctx, member: discord.Member=None):
         "Sura El-Isra (17:32)"
     )
     await ctx.send(text)
-
 
 
 @bot.command()
@@ -365,7 +305,6 @@ async def doner(ctx):
     )
     
     await ctx.send(text)
-
 
 
 @bot.command()
@@ -403,32 +342,24 @@ async def help(ctx):
 
 LAST_UPDATE_ID = 0
 
-
-
 async def check_telegram_updates():
     global LAST_UPDATE_ID
     await bot.wait_until_ready()
     discord_channel = bot.get_channel(DISCORD_FORWARD_CHANNEL_ID)
-
 
     while True:
         try:
             url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getUpdates?timeout=10&offset={LAST_UPDATE_ID+1}"
             data = requests.get(url).json()
 
-
             for update in data.get("result", []):
                 LAST_UPDATE_ID = update["update_id"]
                 if "message" not in update: continue
                 msg = update["message"]
 
-            
-
                 chat = msg.get("chat", {})
                 if chat.get("username", "").lower() != TELEGRAM_CHANNEL_USERNAME.replace("@", "").lower():
                     continue
-
-
 
                 if "text" in msg: await discord_channel.send(msg["text"])
                 if "photo" in msg:
@@ -440,13 +371,11 @@ async def check_telegram_updates():
         await asyncio.sleep(5)
 
 
-
 # --- Lifecycle ---
 
 @bot.event
 async def setup_hook():
     asyncio.create_task(check_telegram_updates())
-
 
 
 if __name__ == "__main__":
