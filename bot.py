@@ -82,6 +82,26 @@ def get_model():
 
 model = get_model()
 
+
+try:
+                    prompt = f"User {message.author.name} says: {user_input}"
+                    response = model.generate_content(prompt)
+                    
+                    # Provera da li je odgovor blokiran od strane filtera
+                    if not response.candidates or not response.candidates[0].content.parts:
+                        await message.channel.send("⚠️ Google je blokirao ovaj odgovor zbog 'Safety' filtera.")
+                        print(f"Blokiran odgovor: {response.prompt_feedback}")
+                        return
+
+                    if len(response.text) > 2000:
+                        await message.channel.send(response.text[:1997] + "...")
+                    else:
+                        await message.channel.send(response.text)
+                except Exception as e:
+                    await message.channel.send(f"Greška: {str(e)}")
+                    print(f"Gemini Full Error: {e}")
+
+
 DISCORD_FORWARD_CHANNEL_ID = 1443341776265023699
 TELEGRAM_CHANNEL_USERNAME = "@ehlussunnah"
 WELCOME_CHANNEL_ID = 1428257626113966112
