@@ -68,18 +68,18 @@ def get_model():
     m_name = 'gemini-1.5-flash'
     try:
         return genai.GenerativeModel(
-            model_name=f'models/{m_name}',
-            system_instruction=instruction,
-            safety_settings=safety_settings
-        )
-    except:
-        return genai.GenerativeModel(
             model_name=m_name,
             system_instruction=instruction,
             safety_settings=safety_settings
         )
+    except Exception as e:
+        print(f"Greška pri pokretanju 1.5-flash: {e}")
+        return genai.GenerativeModel(
+            model_name='gemini-pro',
+            system_instruction=instruction,
+            safety_settings=safety_settings
+        )
 
-# ISPRAVLJENO: Pozivamo model samo jednom preko funkcije
 model = get_model()
 
 DISCORD_FORWARD_CHANNEL_ID = 1443341776265023699
