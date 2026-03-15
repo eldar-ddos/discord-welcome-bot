@@ -67,20 +67,20 @@ safety_settings = [
 def get_model():
     m_name = 'gemini-1.5-flash'
     try:
-        # UKLONJEN prefiks 'models/'
         return genai.GenerativeModel(
-            model_name=m_name, 
+            model_name=m_name,
             system_instruction=instruction,
             safety_settings=safety_settings
         )
     except Exception as e:
-        print(f"Greška kod 1.5-flash: {e}")
-        # Siguran fallback
+        print(f"Fallback error: {e}")
         return genai.GenerativeModel(
-            model_name='gemini-1.5-pro',
+            model_name='gemini-pro',
             system_instruction=instruction,
             safety_settings=safety_settings
         )
+
+model = get_model()
 
 DISCORD_FORWARD_CHANNEL_ID = 1443341776265023699
 TELEGRAM_CHANNEL_USERNAME = "@ehlussunnah"
