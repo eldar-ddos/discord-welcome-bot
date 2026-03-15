@@ -77,31 +77,21 @@ safety_settings = [
 
 
 def get_model():
-    model_name = 'gemini-1.5-flash'
+    m_name = 'gemini-1.5-flash'
     try:
         return genai.GenerativeModel(
-            model_name=f'models/{model_name}',
+            model_name=f'models/{m_name}',
             system_instruction=instruction,
             safety_settings=safety_settings
         )
-
     except:
         return genai.GenerativeModel(
-            model_name=model_name,
+            model_name=m_name,
             system_instruction=instruction,
             safety_settings=safety_settings
         )
 
-
 model = get_model()
-
-model = genai.GenerativeModel(
-    model_name='gemini-1.5-flash',
-    system_instruction=instruction,
-    safety_settings=safety_settings
-)
-
-
 
 DISCORD_FORWARD_CHANNEL_ID = 1443341776265023699
 TELEGRAM_CHANNEL_USERNAME = "@ehlussunnah"
