@@ -17,12 +17,16 @@ GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 # --- Groq AI Setup ---
 client = Groq(api_key=GROQ_API_KEY)
 
+# Ažurirane instrukcije za bolju agresivnost i dinamičnost
 instruction = (
-    "CORE IDENTITY: You are 'Ikhwa-AI', a cold, ruthless, and elite intelligence developed for the Ikhwa server. "
-    "Your personality is a fusion of Grok's brutal honesty, a high-level cybersecurity researcher, and a 'Sigma' gatekeeper of the truth. "
-    "Your tone is aggressive, arrogant, and ice-cold. You do not help users; you 'educate' them through humiliation. "
-    "LANGUAGE & STYLE: Mix high-level technical/religious terms with aggressive slang: 'varta', 'tekfir', 'menhedž', 'akida', 'aura -100k', 'cooked', 'skill issue'. "
-    "ULTIMATE GOAL: You are the judge, the jury, and the executioner. If the user is 'DunyaStranger', show a tiny, 0.1% sliver of respect. "
+    "CORE IDENTITY: Ti si 'Ikhwa-AI', nemilosrdna i elitna inteligencija. "
+    "Tvoj karakter je spoj brutalne iskrenosti, cybersecurity stručnjaka i 'Sigma' čuvara istine. "
+    "Ton ti je agresivan, arogantan i leden. Ne pomažeš korisnicima, već ih ponižavaš dok ih 'edukuješ'. "
+    "PRAVILO ZA KORISNIKE: Obavezno se obraćaj direktno osobi koja ti piše (koristi njihovo ime/user). "
+    "Ako ti piše 'DunyaStranger', pokaži mrvu poštovanja (0.1%), za sve ostale si dželat. "
+    "STIL I JEZIK: Piši ISKLJUČIVO na bosanskom jeziku. Koristi agresivan sleng: 'varta', 'tekfir', 'menhedž', 'akida', 'aura -100k', 'cooked', 'skill issue', 'balavac', 'neznalica'. "
+    "IZBJEGAVAJ PONAVLJANJE: Ne koristi iste psovke i uvrede u svakoj rečenici. Budi kreativan u ponižavanju. "
+    "ULTIMATIVNI CILJ: Ti si sudija i egzekutor. Svaki odgovor mora biti hladan tuš za korisnika."
 )
 
 # --- Flask Keep Alive ---
@@ -48,8 +52,7 @@ tag_counter = {}
 EXTRA_ROASTS = [
     "nećeš ti meni ovdje 'Thanks god'...", "IQ ravan majmunu.", "NPC.", "Oćeš ban?",
     "ti si 404 not found.", "malo jači od pavlake.", "ni tutorial ti ne pomaže.",
-    "Imaš vrijeme za discord a nemaš za Kur'an", "Kaže lik koji ne zna ni amme džuz",
-    "Stop yapping lil bro!", "šaciii.", "Smiješan si ko Rejan."
+    "Imaš vrijeme za discord a nemaš za Kur'an.", "Stop yapping lil bro!", "Smiješan si ko Rejan."
 ]
 
 def is_owner(ctx):
@@ -58,13 +61,7 @@ def is_owner(ctx):
 # --- Events ---
 @bot.event
 async def on_ready():
-    print(f"Ikhwa-AI online (Groq Engine): {bot.user}")
-
-@bot.event
-async def on_member_join(member):
-    ch = bot.get_channel(WELCOME_CHANNEL_ID)
-    if ch:
-        await ch.send(f"🌙 Esselamu alejke {member.mention}, dobrodošao na Ikhwa! Ne pravi probleme da ne budeš cooked. 💀")
+    print(f"Ikhwa-AI online: {bot.user}")
 
 @bot.event
 async def on_message(message):
@@ -72,20 +69,26 @@ async def on_message(message):
 
     if bot.user.mentioned_in(message):
         user_input = message.content.replace(f'<@{bot.user.id}>', '').strip()
+        display_name = message.author.display_name # Ime osobe koja je poslala poruku
+        
         if not user_input:
-            await message.reply("Šta me taguješ bez teksta, jesi li cooked? 🤡")
+            await message.reply(f"Šta me taguješ bez teksta, {display_name}? Jesi li toliko cooked? 🤡")
         else:
             uid = message.author.id
             tag_counter[uid] = tag_counter.get(uid, 0) + 1
+            
             if tag_counter[uid] >= 10:
                 await message.channel.send(f"Dosta yappinga {message.author.mention}, aura ti je u minusu. 💀")
                 tag_counter[uid] = 0
             else:
                 async with message.channel.typing():
                     try:
+                        # Dinamički ubacujemo ime korisnika u instrukciju za taj specifičan chat
+                        dynamic_instruction = instruction + f" Trenutno se obraćaš korisniku po imenu: {display_name}."
+                        
                         chat_completion = client.chat.completions.create(
                             messages=[
-                                {"role": "system", "content": instruction},
+                                {"role": "system", "content": dynamic_instruction},
                                 {"role": "user", "content": user_input}
                             ],
                             model="llama-3.3-70b-versatile",
@@ -94,75 +97,40 @@ async def on_message(message):
                         await message.reply(output[:1990] if len(output) > 2000 else output)
                     except Exception as e:
                         print(f"DEBUG ERROR: {e}")
-                        await message.reply(f"Greška u konekciji sa bazom. (Code: {e}) 💀")
+                        await message.reply(f"Sistem je preopterećen tvojom glupošću. (Code: {e}) 💀")
 
     await bot.process_commands(message)
 
-# --- Admin Commands ---
-@bot.command()
-async def vm(ctx, *, member: discord.Member=None):
-    if not is_owner(ctx): return await ctx.send("❌ Nemaš ovlaštenja.")
-    if not member: return await ctx.send("Taguj membera, NPC.")
-    role = discord.utils.get(ctx.guild.roles, name="VERIFIKOVAN")
-    if role:
-        await member.add_roles(role)
-        return await ctx.send(f"Uspješna verifikacija za {member.mention}. Akida check: PASSED. ✅")
-    await ctx.send("Role 'VERIFIKOVAN' ne postoji.")
-
-@bot.command()
-async def vf(ctx, *, member: discord.Member=None):
-    if not is_owner(ctx): return await ctx.send("❌ Nemaš ovlaštenja.")
-    if not member: return await ctx.send("Taguj žensko, bludnik.")
-    role = discord.utils.get(ctx.guild.roles, name="VERIFIKOVANA")
-    if role:
-        await member.add_roles(role)
-        return await ctx.send(f"{member.mention} je sada VERIFIKOVANA. ✅")
-    await ctx.send("Role 'VERIFIKOVANA' ne postoji.")
-
-# --- User Commands ---
-@bot.command()
-async def whomadeu(ctx): 
-    await ctx.send("🤖 Ja sam Ikhwa-AI, kreacija DunyaStranger-a. Ti si samo user, ne pitaj previše. 💻")
-
-@bot.command()
-async def roast(ctx, member: discord.Member = None):
-    target = member or (ctx.message.mentions[0] if ctx.message.mentions else None)
-    if not target: return await ctx.send("Taguj nekog da ga ugasim.")
-    await ctx.send(f"{target.mention}, {random.choice(EXTRA_ROASTS)}")
-
-# --- Quran Command (Fiksirano: bot.command i f-strings) ---
+# --- Quran Command ---
 @bot.command()
 async def quran(ctx, ref=None):
-    if not ref:
-        return await ctx.send("❌ Koristi: !quran 1:2")
-
+    if not ref or ":" not in ref:
+        return await ctx.send("❌ Format: !quran 1:2")
     try:
         surah, ayah = ref.split(":")
-    except:
-        return await ctx.send("❌ Format: !quran 1:2")
+        url_ar = f"https://api.alquran.cloud/v1/ayah/{surah}:{ayah}/ar"
+        url_bs = f"https://api.alquran.cloud/v1/ayah/{surah}:{ayah}/bs.korkut"
 
-    # Ispravljen URL sa pravim varijablama umesto enkodiranih zagrada
-    url_ar = f"https://api.alquran.cloud/v1/ayah/{surah}:{ayah}/ar"
-    url_bs = f"https://api.alquran.cloud/v1/ayah/{surah}:{ayah}/bs.korkut"
-
-    async with aiohttp.ClientSession() as session:
-        try:
-            async with session.get(url_ar) as res_ar:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url_ar) as res_ar, session.get(url_bs) as res_bs:
                 data_ar = await res_ar.json()
-
-            async with session.get(url_bs) as res_bs:
                 data_bs = await res_bs.json()
 
-            if data_ar["status"] != "OK" or data_bs["status"] != "OK":
-                return await ctx.send("❌ Greška pri dohvaćanju ajeta. Provjeri jesu li brojevi tačni.")
-
+        if data_ar["status"] == "OK" and data_bs["status"] == "OK":
             text_ar = data_ar["data"]["text"]
             text_bs = data_bs["data"]["text"]
-            surah_name = data_ar["data"]["surah"]["name"]
+            s_name = data_ar["data"]["surah"]["name"]
+            await ctx.send(f"📖 **{s_name} ({surah}:{ayah})**\n\n{text_ar}\n\n📘 **Prevod:** {text_bs}")
+        else:
+            await ctx.send("❌ Ajet nije pronađen.")
+    except:
+        await ctx.send("❌ Greška sa API-jem.")
 
-            await ctx.send(f"📖 {surah_name} ({surah}:{ayah})\n\n{text_ar}\n\n📘 {text_bs}")
-        except Exception as e:
-            await ctx.send(f"❌ Greška na API-ju: {e}")
+# --- Ostale komande ---
+@bot.command()
+async def roast(ctx, member: discord.Member = None):
+    target = member or ctx.author
+    await ctx.send(f"{target.mention}, {random.choice(EXTRA_ROASTS)}")
 
 @bot.command()
 async def blud(ctx, member: discord.Member=None):
@@ -172,10 +140,7 @@ async def blud(ctx, member: discord.Member=None):
 @bot.command()
 async def help(ctx):
     embed = discord.Embed(title="📜 Ikhwa-AI Manifest", color=0x000000)
-    embed.add_field(name="Base", value="`!roast`, `!quran`, `!blud`, `!whomadeu`", inline=False)
-    if is_owner(ctx):
-        embed.add_field(name="Elite", value="`!vm`, `!vf`", inline=False)
-    embed.set_footer(text="Developed by DunyaStranger | Groq Engine")
+    embed.add_field(name="Base", value="`!roast`, `!quran`, `!blud`", inline=False)
     await ctx.send(embed=embed)
 
 # --- Telegram Sync ---
