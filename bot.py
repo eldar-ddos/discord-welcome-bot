@@ -1,7 +1,7 @@
 import os
 import discord
 from discord.ext import commands
-from groq import Groq  # Menjamo Gemini biblioteku za Groq
+from groq import Groq
 import asyncio
 from flask import Flask
 from threading import Thread
@@ -14,7 +14,7 @@ DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
-# --- Groq AI Setup (Fix za 404 Error) ---
+# --- Groq Setup (Zamena za Gemini) ---
 client = Groq(api_key=GROQ_API_KEY)
 
 instruction = (
@@ -29,7 +29,6 @@ instruction = (
 app = Flask('')
 @app.route('/')
 def home(): return "Ikhwa-AI is operational."
-
 def run_flask(): app.run(host="0.0.0.0", port=8080)
 def keep_alive(): Thread(target=run_flask).start()
 
@@ -62,19 +61,12 @@ async def on_ready():
     print(f"Ikhwa-AI online (Groq Engine): {bot.user}")
 
 @bot.event
-async def on_member_join(member):
-    ch = bot.get_channel(WELCOME_CHANNEL_ID)
-    if ch: await ch.send(f"🌙 Esselamu alejke {member.mention}, dobrodošao na Ikhwa!")
-
-@bot.event
 async def on_message(message):
-    if message.author == bot.user:
-        return
+    if message.author == bot.user: return
 
-    # 1. AI Odgovor na Mention (@Ikhwa) - KORISTI GROQ ZA FIX ERRORA
+    # 1. AI Odgovor na Mention (@Ikhwa)
     if bot.user.mentioned_in(message):
         user_input = message.content.replace(f'<@{bot.user.id}>', '').strip()
-        
         if not user_input:
             await message.reply("Šta me taguješ bez teksta, jesi li cooked? 🤡")
         else:
@@ -86,26 +78,22 @@ async def on_message(message):
             else:
                 async with message.channel.typing():
                     try:
-                        # Pozivamo Groq (Llama 3 model) koji je free i stabilan
                         chat_completion = client.chat.completions.create(
                             messages=[
                                 {"role": "system", "content": instruction},
-                                {"role": "user", "content": f"User {message.author.name} says: {user_input}"}
+                                {"role": "user", "content": user_input}
                             ],
                             model="llama3-70b-8192",
                         )
                         output = chat_completion.choices[0].message.content
-                        if len(output) > 2000: output = output[:1990] + "..."
-                        await message.reply(output)
+                        await message.reply(output[:1990] if len(output) > 2000 else output)
                     except Exception as e:
-                        print(f"AI ERROR: {e}")
+                        print(f"DEBUG ERROR: {e}")
                         await message.reply("CPU mi se pregreva od tvoje gluposti. (API issue) 💀")
 
-    # OVO OMOGUĆAVA RAD ! KOMANDI
     await bot.process_commands(message)
 
-# --- TVOJE KOMANDE (Zadržane 1/1) ---
-
+# --- Commands (Sve tvoje komande su ovde) ---
 @bot.command()
 async def whomadeu(ctx): 
     await ctx.send("🤖 Ja sam AI napravljen od DunyaStranger u collab sa assalafiyy 💻")
@@ -115,22 +103,17 @@ async def roast(ctx, member: discord.Member = None):
     if not member: 
         if ctx.message.mentions: member = ctx.message.mentions[0]
         else: return await ctx.send("Taguj nekog, genije.")
-    chosen = random.choice(EXTRA_ROASTS)
-    await ctx.send(f"{member.mention}, {chosen}")
+    await ctx.send(f"{member.mention}, {random.choice(EXTRA_ROASTS)}")
 
 @bot.command()
 async def quran(ctx, ref=None):
-    if not ref or ":" not in ref: return await ctx.send("❌ Koristi: !quranSurah:Ayah (npr. !quran 1:1)")
+    if not ref or ":" not in ref: return await ctx.send("❌ Koristi: !quran 1:1")
     surah, ayah = ref.split(":")
-    url_ar = f"https://api.alquran.cloud/v1/ayah/{surah}:{ayah}/ar"
-    url_bs = f"https://api.alquran.cloud/v1/ayah/{surah}:{ayah}/bs.korkut"
-    
     async with aiohttp.ClientSession() as session:
-        async with session.get(url_ar) as r_ar, session.get(url_bs) as r_bs:
-            d_ar = await r_ar.json()
-            d_bs = await r_bs.json()
-            if d_ar["status"] == "OK" and d_bs["status"] == "OK":
-                await ctx.send(f"📖 **{d_ar['data']['surah']['name']} ({ref})**\n\n{d_ar['data']['text']}\n\n📘 {d_bs['data']['text']}")
+        async with session.get(f"https://api.alquran.cloud/v1/ayah/{surah}:{ayah}/bs.korkut") as r:
+            data = await r.json()
+            if data["status"] == "OK":
+                await ctx.send(f"📖 {data['data']['surah']['name']} ({ref})\n{data['data']['text']}")
 
 @bot.command()
 async def blud(ctx, member: discord.Member=None):
@@ -144,23 +127,12 @@ async def doner(ctx):
 @bot.command()
 async def mute(ctx, member: discord.Member=None):
     if member == ctx.author: return await ctx.send("Kako si samo kontradiktoran.")
-    if member: return await ctx.send(f"Neću mute-ati {member.mention}, to je moj brat.")
-    await ctx.send("Nisi naveo membera.")
-
-@bot.command()
-async def vm(ctx, member: discord.Member=None):
-    if not is_owner(ctx): return await ctx.send("❌ Nemaš ovlaštenja.")
-    role = discord.utils.get(ctx.guild.roles, name="VERIFIKOVAN")
-    if role and member:
-        await member.add_roles(role)
-        await ctx.send(f"{member.mention} je sada VERIFIKOVAN ✅")
+    await ctx.send(f"Neću mute-ati {member.mention if member else 'nikoga'}, to je moj brat.")
 
 @bot.command()
 async def help(ctx):
     embed = discord.Embed(title="📖 Ikhwa Bot Help", color=0x2ecc71)
-    embed.add_field(name="User commands", value="`!roast`, `!mute`, `!whomadeu`, `!blud`, `!doner`, `!quran`", inline=False)
-    if is_owner(ctx):
-        embed.add_field(name="Admin commands", value="`!vm`", inline=False)
+    embed.add_field(name="Commands", value="`!roast`, `!mute`, `!whomadeu`, `!blud`, `!doner`, `!quran`", inline=False)
     await ctx.send(embed=embed)
 
 # --- Telegram Sync ---
