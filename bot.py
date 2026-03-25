@@ -146,6 +146,25 @@ EXTRA_ROASTS = [
     "Imaš vrijeme za discord a nemaš za Kur'an",
     "Kaže lik koji ne zna ni amme džuz",
     "NPC.",
+    "Allahu Ekber..",
+    "unistio si bota koliko si pametan.",
+    "nfg893bncn48r99fkwk494 irfan 🥵🥵 fnf89435ndf.",
+    "ŠTA SMARAŠ GLAVONJA!!.",
+    "Neću ništa ni da kažem.",
+    "Jače mišljenje ima Ehlur-Ra'j od ovoga....",
+    "K.",
+    "Brate nećeš rizzati emo girl.",
+    "Ne znam šta da kažem koliko je glupo ovo što si rekao.",
+    "Druže oni AI voća i povrća su pametniji.",
+    "Brate fakat nisi smiješan.",
+    "Hoćeš da se pozabavimo? 🤭",
+    "Getting daddy angry.",
+    "Daddy gets what he wants.",
+    "Druže ne znam jesi li e-girl ili femboy.",
+    "Baqiyah ili Mačija?",
+    "Smiješan si ko Rejan.",
+    "Rekao bi svašta ali je haram.",
+    "Jesi li testiran Rabi'om?",
     "Ponašaš se kao lik koji gleda Tung Tung Tung Sahur u 3AM..",
     "Stop yapping lil bro!"
 ]
@@ -216,6 +235,13 @@ async def on_message(message):
 async def whomadeu(ctx):
     await ctx.send("🤖 Napravio me **DunyaStranger** 💻")
 
+@bot.command()
+async def siluj(ctx):
+    await ctx.send("Daj druže {member.mention} šta pokušavaš sa ovim")
+
+@bot.command()
+async def kufur(ctx):
+    await ctx.send("Irfane prestani")
 
 @bot.command()
 async def mute(ctx, member: discord.Member=None):
@@ -309,13 +335,20 @@ async def doner(ctx):
 
 @bot.command()
 async def vm(ctx, *, member: discord.Member=None):
-    if not is_owner(ctx): return await ctx.send("❌ Nemaš ovlaštenja.")
-    if not member: return await ctx.send("Taguj membera.")
-    role = discord.utils.get(ctx.guild.roles, name="🫂・BRAT")
-    if role:
-        await member.add_roles(role)
-        return await ctx.send(f"{member.mention} sada ima ulogu {role.name} ✅")
-    await ctx.send("Role ne postoji.")
+    if not is_owner(ctx): 
+        return await ctx.send("❌ Nemaš ovlaštenja.")
+        
+    if not member: 
+        return await ctx.send("Taguj membera.")
+
+    role1 = discord.utils.get(ctx.guild.roles, name="VERIFIKOVAN")
+    role2 = discord.utils.get(ctx.guild.roles, name="BRAT")
+
+    if role1 and role2:
+        await member.add_roles(role1, role2)
+        return await ctx.send(f"{member.mention} sada ima role {role1.name} i {role2.name} ✅")
+
+    await ctx.send("Jedna ili više rola ne postoji.")
 
 
 @bot.command()
