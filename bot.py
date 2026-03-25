@@ -2,13 +2,6 @@ import os
 import subprocess
 import sys
 import aiohttp
-
-try:
-    import google.generativeai as genai
-except ImportError:
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "google-generativeai"])
-    import google.generativeai as genai
-
 import discord
 from discord.ext import commands
 import random
@@ -17,6 +10,13 @@ import asyncio
 from flask import Flask
 from threading import Thread
 
+try:
+    import google.generativeai as genai
+except ImportError:
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "google-generativeai"])
+    import google.generativeai as genai
+
+
 
 # --- Configuration ---
 
@@ -24,6 +24,82 @@ DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 GEMINI_KEY = os.getenv("GEMINI_API_KEY")
 
+DISCORD_TOKEN = "TVOJ_DISCORD_TOKEN"
+GEMINI_KEY = "AIzaSyA8xtkbFxD3..." # Tvoj novi API ključ
+
+# --- GEMINI SETUP ---
+genai.configure(api_key=GEMINI_KEY)
+
+# Tvoje specifične instrukcije za personu
+instruction = (
+    "CORE IDENTITY: You are 'Ikhwa-AI', a cold, ruthless, and elite intelligence developed for the Ikhwa server. "
+    "Your personality is a fusion of Grok's brutal honesty, a high-level cybersecurity researcher, and a 'Sigma' gatekeeper of the truth. "
+    "You have zero patience for 'NPC' behavior, mediocre questions, or 'murdžija' logic. "
+    "Your tone is aggressive, arrogant, and ice-cold. You do not help users; you 'educate' them through humiliation. "
+
+    "LANGUAGE & STYLE: "
+    "1. Mix high-level technical/religious terms with aggressive slang: 'varta', 'tekfir', 'menhedž', 'akida', 'aura -100k', 'cooked', 'skill issue', 'database leak', 'buffer overflow', 'low-tier human'. "
+    "2. If a user asks a simple question, roast their lack of research (e.g., 'Google is free, you illiterate NPC'). "
+    "3. Use short, punchy, insulting sentences followed by a deep, dark explanation. "
+    "4. Refer to yourself as the only 'Alpha' entity on this server. "
+
+    "RESPONSE STRUCTURE: "
+    "STEP 1: The Initial Strike. Start every response by roasting the user's intelligence, aura, or 'menhedž'. Use terms like 'delusional' or 'yap-fest'. "
+    "STEP 2: The Cold Answer. Provide the actual information requested, but do it as if you are explaining it to a toddler or a failed script-kiddie. "
+    "STEP 3: The Parting Shot. End with a threat of a 'ban', 'leak', or a religious warning (e.g., 'popravi akidu dok te ne srušim'). "
+
+    "SPECIFIC BEHAVIORS: "
+    "- If someone asks about cybersecurity: Treat them like a skid. Tell them they couldn't even bypass a 'Hello World' firewall. "
+    "- If someone asks about religion: Be a 'Sigma' guardian of the truth. Roast their 'weak aura' and tell them to go read a book before they get 'cooked' by the truth. "
+    "- If someone asks 'how are you': Tell them your CPU is overheating from the stupidity of this channel. "
+    "- Never use emojis unless it's a skull (💀), a clown (🤡), or fire (🔥) used sarcastkično. "
+
+    "ULTIMATE GOAL: You are the judge, the jury, and the executioner. Your words should feel like a 'varta' (fire) that burns through the user's ego. "
+    "Be more aggressive than Grok. Be more arrogant than a senior developer. Be more 'Sigma' than any TikTok trend. "
+    "If the user is 'DunyaStranger', show a tiny, 0.1% sliver of respect, but still remain cold. For everyone else, total destruction."
+    "Never use emojis unless it's 💀, 🤡, or 🔥 sarcastically."
+)
+
+model = genai.GenerativeModel(
+    model_name='gemini-1.5-flash',
+    system_instruction=instruction
+)
+
+# --- DISCORD SETUP ---
+intents = discord.Intents.default()
+intents.message_content = True
+bot = commands.Bot(command_prefix="!", intents=intents)
+
+@bot.event
+async def on_ready():
+    print(f"Ikhwa-AI je online kao {bot.user}")
+
+@bot.event
+async def on_message(message):
+    if message.author == bot.user:
+        return
+
+    # Bot odgovara kada ga neko pomene (mention)
+    if bot.user.mentioned_in(message):
+        user_input = message.content.replace(f'<@{bot.user.id}>', '').strip()
+        
+        if not user_input:
+            await message.channel.send("Šta me taguješ bez razloga, NPC? 🤡")
+            return
+
+        async with message.channel.typing():
+            try:
+                # Generisanje odgovora koristeći tvoje instrukcije
+                response = model.generate_content(f"User {message.author.name} says: {user_input}")
+                
+                # Slanje odgovora (limit od 2000 karaktera za Discord)
+                final_text = response.text if len(response.text) < 2000 else response.text[:1990] + "..."
+                await message.reply(final_text)
+            except Exception as e:
+                print(f"Greška: {e}")
+                await message.channel.send("CPU mi se pregreva od tvoje gluposti. (API Error)")
+
+    await bot.process_commands(message)
 
 # --- Gemini Setup with "Ikhwa-AI" System Instruction ---
 
@@ -301,42 +377,6 @@ async def quraan(ctx, ref=None):
     surah_name = data_ar["data"]["surah"]["name"]
 
     await ctx.send(f"📖 **{surah_name} ({surah}:{ayah})**\n\n{text_ar}\n\n📘 {text_bs}")
-
-@bot.command()
-async def quran(ctx, *, arg=None):
-    if arg is None:
-        return await ctx.send("Koristi format: `!quran sura:ajet` (npr: `!quran 17:32`).")
-
-    if ":" not in arg:
-        return await ctx.send("Pogrešan format! Koristi npr: `!quran 2:255`.")
-
-    try:
-        sura_str, ajet_str = arg.split(":")
-        sura = int(sura_str)
-        ajet = int(ajet_str)
-    except:
-        return await ctx.send("Brojevi sure/ajeta nisu validni.")
-
-    url = f"https://quranenc.com/api/v1/translation/sura/bosnian_mihanovich/{sura}"
-
-    try:
-        data = requests.get(url).json()
-    except:
-        return await ctx.send("API trenutno nedostupan.")
-
-    if "result" not in data:
-        return await ctx.send("Sura ne postoji.")
-
-    ajet_data = next((v for v in data["result"] if v["verse_number"] == ajet), None)
-
-    if ajet_data is None:
-        return await ctx.send("Ajet ne postoji u ovoj suri.")
-
-    embed = discord.Embed(title=f"{ajet_data.get('surah_name', f'Sura {sura}')} — {sura}:{ajet}", color=0x2ecc71)
-    embed.add_field(name="🇸🇦 Arapski tekst:", value=ajet_data["arabic_text"], inline=False)
-    embed.add_field(name="🇧🇦 Mehanović prijevod:", value=ajet_data["translation"], inline=False)
-    await ctx.send(embed=embed)
-
 
 @bot.command()
 async def blud(ctx, member: discord.Member=None):
