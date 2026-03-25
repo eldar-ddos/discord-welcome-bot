@@ -1,7 +1,7 @@
 import os
 import subprocess
 import sys
-pip install aiohttp
+import aiohttp
 
 try:
     import google.generativeai as genai
