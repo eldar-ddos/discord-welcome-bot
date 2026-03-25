@@ -88,7 +88,7 @@ async def on_message(message):
                                 {"role": "system", "content": instruction},
                                 {"role": "user", "content": user_input}
                             ],
-                            model="llama3-70b-8192",
+                            model="llama-3.3-70b-versatile",
                         )
                         output = chat_completion.choices[0].message.content
                         await message.reply(output[:1990] if len(output) > 2000 else output)
@@ -131,7 +131,7 @@ async def roast(ctx, member: discord.Member = None):
     if not target: return await ctx.send("Taguj nekog da ga ugasim.")
     await ctx.send(f"{target.mention}, {random.choice(EXTRA_ROASTS)}")
 
-# --- Quran Command (FIKSIRAN PREVOD) ---
+# --- Quran Command (Fiksiran Format: Embed) ---
 @bot.command()
 async def quran(ctx, ref=None):
     if not ref or ":" not in ref:
@@ -139,10 +139,10 @@ async def quran(ctx, ref=None):
 
     try:
         surah, ayah = ref.split(":")
-        # Koristimo quran-endpoint za arapski
+        # Koristimo quran-uthmani za najčistiji arapski tekst
         url_ar = f"https://api.alquran.cloud/v1/ayah/{surah}:{ayah}/quran-uthmani"
-        # Koristimo bs.mihanovic jer bs.mehanovic nekad baguje sa arapskim pismom na nekim API rutama
-        url_bs = f"https://api.alquran.cloud/v1/ayah/{surah}:{ayah}/bs.mihanovic"
+        # Koristimo bs.mehanovic kao ID prevoda
+        url_bs = f"https://api.alquran.cloud/v1/ayah/{surah}:{ayah}/bs.mehanovic"
 
         async with aiohttp.ClientSession() as session:
             async with session.get(url_ar) as res_ar, session.get(url_bs) as res_bs:
@@ -154,13 +154,17 @@ async def quran(ctx, ref=None):
             text_bs = data_bs["data"]["text"]
             s_name = data_ar["data"]["surah"]["name"]
             
-            response = (
-                f"📖 **{s_name} ({surah}:{ayah})**\n"
-                f"━━━━━━━━━━━━━━━━━━━━\n"
-                f"🕌 **Arabic:**\n`{text_ar}`\n\n"
-                f"📘 **Prevod (Mehanović):**\n*{text_bs}*"
+            # Pravimo lep Embed (kao na tvojoj slici 2)
+            embed = discord.Embed(
+                title=f"📖 {s_name} ({surah}:{ayah})",
+                color=0x2ecc71 # Sigma zelena
             )
-            await ctx.send(response)
+            # Dodajemo polje za arapski tekst
+            embed.add_field(name="🕌 Arabic:", value=f"```\n{text_ar}\n```", inline=False)
+            # Dodajemo polje za prevod (Mehanović)
+            embed.add_field(name="📘 Prevod (Mehanović):", value=f"*{text_bs}*", inline=False)
+            
+            await ctx.send(embed=embed)
         else:
             await ctx.send("❌ Ajet nije pronađen. Proveri format (npr. !quran 2:255).")
     except Exception as e:
