@@ -139,7 +139,6 @@ async def quran(ctx, ref=None):
     try:
         surah, ayah = ref.split(":")
         url_ar = f"https://api.alquran.cloud/v1/ayah/{surah}:{ayah}/ar"
-        # Promenjeno na bs.mehanovic
         url_bs = f"https://api.alquran.cloud/v1/ayah/{surah}:{ayah}/bs.mehanovic"
 
         async with aiohttp.ClientSession() as session:
@@ -160,7 +159,7 @@ async def quran(ctx, ref=None):
             )
             await ctx.send(response)
         else:
-            await ctx.send("❌ Ajet nije pronađen ili prevod Mehanovića nije dostupan za ovu referencu.")
+            await ctx.send("❌ Ajet nije pronađen ili prevod Mehanovića nije dostupan.")
     except Exception as e:
         print(f"QURAN ERROR: {e}")
         await ctx.send("❌ Greška pri komunikaciji sa API-jem. Pokušaj kasnije.")
