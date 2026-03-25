@@ -8,7 +8,7 @@ from threading import Thread
 import aiohttp
 import random
 
-# --- Configuration ---
+# --- Configuration ---@b
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
@@ -27,6 +27,8 @@ instruction = (
     "Svi ostali su 'cooked', 'varta', 'tekfirovci' i imaju '-100k aura'. "
     "VRIJEĐANJE: Budi kreativan, ne koristi stalno 'skill issue'. Udari tamo gdje boli."
 )
+
+
 
 # --- Flask Keep Alive ---
 app = Flask('')
@@ -88,6 +90,51 @@ async def on_message(message):
                 await message.reply(f"CPU mi se pregreva od tvoje gluposti, {username}. (API issue) 💀")
 
     await bot.process_commands(message)
+
+EXTRA_ROASTS = [
+    "nećeš ti meni ovdje 'Thanks god'...", "IQ ravan majmunu.", "NPC.", "Oćeš ban?",
+    "ti si 404 not found.", "malo jači od pavlake.", "ni tutorial ti ne pomaže.",
+    "Imaš vrijeme za discord a nemaš za Kur'an", "Kaže lik koji ne zna ni amme džuz",
+    "Stop yapping lil bro!", "šaciii.", "Smiješan si ko Rejan."
+]
+
+# --- AI Keywords (Slang & Identity) ---
+AI_KEYWORDS = [
+    "goy", 
+    "jevrej", 
+    "bankrot", 
+    "dzahil", 
+    "-1000 aura", 
+    "cooked", 
+    "skill issue"
+]
+
+# --- Sistemske uvrede (Logika) ---
+RESPONSES = {
+    "empty_tag": "Šta me taguješ bez teksta, jesi li cooked? 🤡",
+    "spam_tag": "Dosta yappinga {mention}, aura ti je u minusu. 💀",
+    "api_error": "CPU mi se pregreva od tvoje gluposti. (API issue) 💀",
+    "creator_info": "Ja sam Ikhwa-AI, kreacija DunyaStranger-a. Ti si samo user, ne pitaj previše. 💻",
+    "admin_fail": "Taguj membera, NPC.",
+    "blud_check": "'I ne približavajte se bludu, jer je to razvrat...' (17:32) 💀"
+}
+
+@bot.command()
+async def roast(ctx, member: discord.Member = None):
+    target = member or (ctx.message.mentions[0] if ctx.message.mentions else None)
+    if not target: return await ctx.send("Taguj nekog da ga ugasim.")
+    await ctx.send(f"{target.mention}, {random.choice(EXTRA_ROASTS)}")
+
+
+@bot.command()
+async def help(ctx):
+    embed = discord.Embed(title="📜 Ikhwa-AI Manifest", color=0x000000)
+    embed.add_field(name="Base", value="`!roast`, `!quran`, `!blud`, `!whomadeu`", inline=False)
+    if is_owner(ctx):
+        embed.add_field(name="Elite", value="`!vm`, `!vf`", inline=False)
+    embed.set_footer(text="Developed by DunyaStranger | Groq Engine")
+    await ctx.send(embed=embed)
+
 
 # --- Quran Command (Fiksiran format) ---
 @bot.command()
