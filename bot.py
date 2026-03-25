@@ -87,11 +87,7 @@ async def on_message(message):
             tag_counter[uid] = 0
             return
 
-        # 2. Gemini AI Odgovor
-        user_input = message.content.replace(f'<@{bot.user.id}>', '').strip()
-        if not user_input:
-            await message.reply("Šta me taguješ bez teksta, jesi li cooked? 🤡")
-        else:
+else:
             async with message.channel.typing():
                 try:
                     prompt = f"User {message.author.name} says: {user_input}"
@@ -101,17 +97,16 @@ async def on_message(message):
                     if len(output) > 2000: output = output[:1990] + "..."
                     await message.reply(output)
                 except Exception as e:
-                # Ovo će ispisati tačnu grešku u Railway -> Logs
-                print(f"DEBUG GEMINI ERROR: {e}")
-                
-                # Bot će ti na Discordu reći šta je tačno problem (privremeno, dok ne popraviš)
-                error_msg = str(e)
-                if "API_KEY_INVALID" in error_msg:
-                    await message.reply("Brate, ovaj API ključ ti ne valja. Generiši novi. 💀")
-                elif "SAFETY" in error_msg:
-                    await message.reply("Google mi cenzuriše rečnik jer sam previše 'ruthless'. 🤡")
-                else:
-                    await message.reply(f"API Error: {error_msg[:100]}")
+                    # Ove linije ispod MORAJU biti uvučene u odnosu na 'except'
+                    print(f"DEBUG GEMINI ERROR: {e}")
+                    
+                    error_msg = str(e)
+                    if "API_KEY_INVALID" in error_msg:
+                        await message.reply("Brate, ovaj API ključ ti ne valja. Generiši novi. 💀")
+                    elif "SAFETY" in error_msg:
+                        await message.reply("Google mi cenzuriše rečnik jer sam previše 'ruthless'. 🤡")
+                    else:
+                        await message.reply(f"API Error: {error_msg[:100]}")
     await bot.process_commands(message)
 
 # --- Commands ---
