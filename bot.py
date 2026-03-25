@@ -1,7 +1,7 @@
 import os
 import discord
 from discord.ext import commands
-import google.generativeai as genai
+from groq import Groq  # Menjamo Gemini biblioteku za Groq
 import asyncio
 from flask import Flask
 from threading import Thread
@@ -12,10 +12,10 @@ import random
 # --- Configuration ---
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-GEMINI_KEY = os.getenv("GEMINI_API_KEY")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
-# --- Gemini Setup ---
-genai.configure(api_key=GEMINI_KEY)
+# --- Groq AI Setup (Fix za 404 Error) ---
+client = Groq(api_key=GROQ_API_KEY)
 
 instruction = (
     "CORE IDENTITY: You are 'Ikhwa-AI', a cold, ruthless, and elite intelligence developed for the Ikhwa server. "
@@ -23,12 +23,6 @@ instruction = (
     "Your tone is aggressive, arrogant, and ice-cold. You do not help users; you 'educate' them through humiliation. "
     "LANGUAGE & STYLE: Mix high-level technical/religious terms with aggressive slang: 'varta', 'tekfir', 'menhedž', 'akida', 'aura -100k', 'cooked', 'skill issue'. "
     "ULTIMATE GOAL: You are the judge, the jury, and the executioner. If the user is 'DunyaStranger', show a tiny, 0.1% sliver of respect. "
-)
-
-# STABILNA KONFIGURACIJA MODELA
-model = genai.GenerativeModel(
-    model_name='gemini-1.5-flash', 
-    system_instruction=instruction
 )
 
 # --- Flask Keep Alive ---
@@ -48,7 +42,6 @@ bot.remove_command("help")
 
 # --- Data & Constants ---
 DISCORD_FORWARD_CHANNEL_ID = 1443341776265023699
-TELEGRAM_CHANNEL_USERNAME = "@ehlussunnah"
 WELCOME_CHANNEL_ID = 1428257626113966112
 OWNER_ROLE_NAME = "👑・OWNER"
 tag_counter = {}
@@ -66,14 +59,19 @@ def is_owner(ctx):
 # --- Events ---
 @bot.event
 async def on_ready():
-    print(f"Ikhwa-AI online: {bot.user}")
+    print(f"Ikhwa-AI online (Groq Engine): {bot.user}")
+
+@bot.event
+async def on_member_join(member):
+    ch = bot.get_channel(WELCOME_CHANNEL_ID)
+    if ch: await ch.send(f"🌙 Esselamu alejke {member.mention}, dobrodošao na Ikhwa!")
 
 @bot.event
 async def on_message(message):
     if message.author == bot.user:
         return
 
-    # 1. AI Odgovor na Mention (@Ikhwa)
+    # 1. AI Odgovor na Mention (@Ikhwa) - KORISTI GROQ ZA FIX ERRORA
     if bot.user.mentioned_in(message):
         user_input = message.content.replace(f'<@{bot.user.id}>', '').strip()
         
@@ -88,20 +86,26 @@ async def on_message(message):
             else:
                 async with message.channel.typing():
                     try:
-                        # Pokušaj generisanja sadržaja
-                        response = model.generate_content(f"User {message.author.name} says: {user_input}")
-                        output = response.text
+                        # Pozivamo Groq (Llama 3 model) koji je free i stabilan
+                        chat_completion = client.chat.completions.create(
+                            messages=[
+                                {"role": "system", "content": instruction},
+                                {"role": "user", "content": f"User {message.author.name} says: {user_input}"}
+                            ],
+                            model="llama3-70b-8192",
+                        )
+                        output = chat_completion.choices[0].message.content
                         if len(output) > 2000: output = output[:1990] + "..."
                         await message.reply(output)
                     except Exception as e:
-                        print(f"DEBUG GEMINI ERROR: {e}")
-                        # Ako baci 404, bot odgovara Sigma stilom umesto sistemske greške
+                        print(f"AI ERROR: {e}")
                         await message.reply("CPU mi se pregreva od tvoje gluposti. (API issue) 💀")
 
     # OVO OMOGUĆAVA RAD ! KOMANDI
     await bot.process_commands(message)
 
-# --- Commands ---
+# --- TVOJE KOMANDE (Zadržane 1/1) ---
+
 @bot.command()
 async def whomadeu(ctx): 
     await ctx.send("🤖 Ja sam AI napravljen od DunyaStranger u collab sa assalafiyy 💻")
@@ -144,11 +148,19 @@ async def mute(ctx, member: discord.Member=None):
     await ctx.send("Nisi naveo membera.")
 
 @bot.command()
+async def vm(ctx, member: discord.Member=None):
+    if not is_owner(ctx): return await ctx.send("❌ Nemaš ovlaštenja.")
+    role = discord.utils.get(ctx.guild.roles, name="VERIFIKOVAN")
+    if role and member:
+        await member.add_roles(role)
+        await ctx.send(f"{member.mention} je sada VERIFIKOVAN ✅")
+
+@bot.command()
 async def help(ctx):
     embed = discord.Embed(title="📖 Ikhwa Bot Help", color=0x2ecc71)
     embed.add_field(name="User commands", value="`!roast`, `!mute`, `!whomadeu`, `!blud`, `!doner`, `!quran`", inline=False)
     if is_owner(ctx):
-        embed.add_field(name="Admin commands", value="`!vm`, `!vf`", inline=False)
+        embed.add_field(name="Admin commands", value="`!vm`", inline=False)
     await ctx.send(embed=embed)
 
 # --- Telegram Sync ---
