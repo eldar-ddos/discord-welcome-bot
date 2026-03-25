@@ -94,7 +94,6 @@ async def on_message(message):
                         await message.reply(output[:1990] if len(output) > 2000 else output)
                     except Exception as e:
                         print(f"DEBUG ERROR: {e}")
-                        # Ako dobijaš ovu poruku, proveri GROQ_API_KEY na Railway-u!
                         await message.reply(f"Greška u konekciji sa bazom. (Code: {e}) 💀")
 
     await bot.process_commands(message)
@@ -131,8 +130,8 @@ async def roast(ctx, member: discord.Member = None):
     if not target: return await ctx.send("Taguj nekog da ga ugasim.")
     await ctx.send(f"{target.mention}, {random.choice(EXTRA_ROASTS)}")
 
-# --- Quran Command (Fiksiran Format: Embed) ---
-@BOT.command()
+# --- Quran Command (Fiksirano: bot.command i f-strings) ---
+@bot.command()
 async def quran(ctx, ref=None):
     if not ref:
         return await ctx.send("❌ Koristi: !quran 1:2")
@@ -142,24 +141,28 @@ async def quran(ctx, ref=None):
     except:
         return await ctx.send("❌ Format: !quran 1:2")
 
-    url_ar = f"https://api.alquran.cloud/v1/ayah/%7Bsurah%7D:%7Bayah%7D/ar"
-    url_bs = f"https://api.alquran.cloud/v1/ayah/%7Bsurah%7D:%7Bayah%7D/bs.korkut"
+    # Ispravljen URL sa pravim varijablama umesto enkodiranih zagrada
+    url_ar = f"https://api.alquran.cloud/v1/ayah/{surah}:{ayah}/ar"
+    url_bs = f"https://api.alquran.cloud/v1/ayah/{surah}:{ayah}/bs.korkut"
 
     async with aiohttp.ClientSession() as session:
-        async with session.get(url_ar) as res_ar:
-            data_ar = await res_ar.json()
+        try:
+            async with session.get(url_ar) as res_ar:
+                data_ar = await res_ar.json()
 
-        async with session.get(url_bs) as res_bs:
-            data_bs = await res_bs.json()
+            async with session.get(url_bs) as res_bs:
+                data_bs = await res_bs.json()
 
-    if data_ar["status"] != "OK" or data_bs["status"] != "OK":
-        return await ctx.send("❌ Greška pri dohvaćanju ajeta.")
+            if data_ar["status"] != "OK" or data_bs["status"] != "OK":
+                return await ctx.send("❌ Greška pri dohvaćanju ajeta. Provjeri jesu li brojevi tačni.")
 
-    text_ar = data_ar["data"]["text"]
-    text_bs = data_bs["data"]["text"]
-    surah_name = data_ar["data"]["surah"]["name"]
+            text_ar = data_ar["data"]["text"]
+            text_bs = data_bs["data"]["text"]
+            surah_name = data_ar["data"]["surah"]["name"]
 
-    await ctx.send(f"📖 {surah_name} ({surah}:{ayah})\n\n{text_ar}\n\n📘 {text_bs}")
+            await ctx.send(f"📖 {surah_name} ({surah}:{ayah})\n\n{text_ar}\n\n📘 {text_bs}")
+        except Exception as e:
+            await ctx.send(f"❌ Greška na API-ju: {e}")
 
 @bot.command()
 async def blud(ctx, member: discord.Member=None):
