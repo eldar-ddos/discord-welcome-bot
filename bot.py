@@ -233,7 +233,7 @@ async def on_message(message):
 
 @bot.command()
 async def whomadeu(ctx):
-    await ctx.send("🤖 Napravio me **DunyaStranger** 💻")
+    await ctx.send("🤖 Ja sam AI napravljen od DunyaStranger u collab sa assalafiyy 💻")
 
 @bot.command()
 async def siluj(ctx):
