@@ -8,6 +8,7 @@ from threading import Thread
 import requests
 import aiohttp
 import random
+pip install aiohttp
 
 # --- Configuration ---
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
@@ -131,17 +132,36 @@ async def roast(ctx, member: discord.Member = None):
     if not target: return await ctx.send("Taguj nekog, genije.")
     await ctx.send(f"{target.mention}, {random.choice(EXTRA_ROASTS)}")
 
+import aiohttp
+
 @bot.command()
 async def quran(ctx, ref=None):
-    if not ref or ":" not in ref: return await ctx.send("❌ Koristi: !quran 1:1")
-    surah, ayah = ref.split(":")
+    if not ref:
+        return await ctx.send("❌ Koristi: !quran 1:2")
+
+    try:
+        surah, ayah = ref.split(":")
+    except:
+        return await ctx.send("❌ Format: !quran 1:2")
+
+    url_ar = f"https://api.alquran.cloud/v1/ayah/{surah}:{ayah}/ar"
+    url_bs = f"https://api.alquran.cloud/v1/ayah/{surah}:{ayah}/bs.korkut"
+
     async with aiohttp.ClientSession() as session:
-        async with session.get(f"https://api.alquran.cloud/v1/ayah/{surah}:{ayah}/bs.korkut") as r:
-            data = await r.json()
-            if data["status"] == "OK":
-                await ctx.send(f"📖 {data['data']['surah']['name']} ({ref})\n{data['data']['text']}")
-            else:
-                await ctx.send("Ajet nije pronađen.")
+        async with session.get(url_ar) as res_ar:
+            data_ar = await res_ar.json()
+
+        async with session.get(url_bs) as res_bs:
+            data_bs = await res_bs.json()
+
+    if data_ar["status"] != "OK" or data_bs["status"] != "OK":
+        return await ctx.send("❌ Greška pri dohvaćanju ajeta.")
+
+    text_ar = data_ar["data"]["text"]
+    text_bs = data_bs["data"]["text"]
+    surah_name = data_ar["data"]["surah"]["name"]
+
+    await ctx.send(f"📖 **{surah_name} ({surah}:{ayah})**\n\n{text_ar}\n\n📘 {text_bs}")
 
 @bot.command()
 async def blud(ctx, member: discord.Member=None):
