@@ -335,27 +335,20 @@ async def doner(ctx):
 
 @bot.command()
 async def vm(ctx, *, member: discord.Member=None):
-    if not is_owner(ctx): 
-        return await ctx.send("❌ Nemaš ovlaštenja.")
-        
-    if not member: 
-        return await ctx.send("Taguj membera.")
-
-    role1 = discord.utils.get(ctx.guild.roles, name="VERIFIKOVAN")
-    role2 = discord.utils.get(ctx.guild.roles, name="BRAT")
-
-    if role1 and role2:
-        await member.add_roles(role1, role2)
-        return await ctx.send(f"{member.mention} sada ima role {role1.name} i {role2.name} ✅")
-
-    await ctx.send("Jedna ili više rola ne postoji.")
+    if not is_owner(ctx): return await ctx.send("❌ Nemaš ovlaštenja.")
+    if not member: return await ctx.send("Taguj membera.")
+    role = discord.utils.get(ctx.guild.roles, name="VERIFIKOVAN")
+    if role:
+        await member.add_roles(role)
+        return await ctx.send(f"{member.mention} sada ima ulogu {role.name} ✅")
+    await ctx.send("Role ne postoji.")
 
 
 @bot.command()
 async def vf(ctx, *, member: discord.Member=None):
     if not is_owner(ctx): return await ctx.send("❌ Nemaš ovlaštenja.")
     if not member: return await ctx.send("Taguj membera.")
-    role = discord.utils.get(ctx.guild.roles, name="🫂・SESTRA")
+    role = discord.utils.get(ctx.guild.roles, name="VERIFIKOVANA")
     if role:
         await member.add_roles(role)
         return await ctx.send(f"{member.mention} sada ima ulogu {role.name} ✅")
