@@ -1,4 +1,5 @@
 discord.py
-google-generativeai==0.8.3
-requests
+google-generativeai
 flask
+requests
+aiohttp
