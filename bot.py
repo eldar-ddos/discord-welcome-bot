@@ -132,44 +132,34 @@ async def roast(ctx, member: discord.Member = None):
     await ctx.send(f"{target.mention}, {random.choice(EXTRA_ROASTS)}")
 
 # --- Quran Command (Fiksiran Format: Embed) ---
-@bot.command()
+@BOT.command()
 async def quran(ctx, ref=None):
-    if not ref or ":" not in ref:
-        return await ctx.send("❌ Format: !quran 1:2")
+    if not ref:
+        return await ctx.send("❌ Koristi: !quran 1:2")
 
     try:
         surah, ayah = ref.split(":")
-        # Koristimo quran-uthmani za najčistiji arapski tekst
-        url_ar = f"https://api.alquran.cloud/v1/ayah/{surah}:{ayah}/quran-uthmani"
-        # Koristimo bs.mehanovic kao ID prevoda
-        url_bs = f"https://api.alquran.cloud/v1/ayah/{surah}:{ayah}/bs.mehanovic"
+    except:
+        return await ctx.send("❌ Format: !quran 1:2")
 
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url_ar) as res_ar, session.get(url_bs) as res_bs:
-                data_ar = await res_ar.json()
-                data_bs = await res_bs.json()
+    url_ar = f"https://api.alquran.cloud/v1/ayah/%7Bsurah%7D:%7Bayah%7D/ar"
+    url_bs = f"https://api.alquran.cloud/v1/ayah/%7Bsurah%7D:%7Bayah%7D/bs.korkut"
 
-        if data_ar["status"] == "OK" and data_bs["status"] == "OK":
-            text_ar = data_ar["data"]["text"]
-            text_bs = data_bs["data"]["text"]
-            s_name = data_ar["data"]["surah"]["name"]
-            
-            # Pravimo lep Embed (kao na tvojoj slici 2)
-            embed = discord.Embed(
-                title=f"📖 {s_name} ({surah}:{ayah})",
-                color=0x2ecc71 # Sigma zelena
-            )
-            # Dodajemo polje za arapski tekst
-            embed.add_field(name="🕌 Arabic:", value=f"```\n{text_ar}\n```", inline=False)
-            # Dodajemo polje za prevod (Mehanović)
-            embed.add_field(name="📘 Prevod (Mehanović):", value=f"*{text_bs}*", inline=False)
-            
-            await ctx.send(embed=embed)
-        else:
-            await ctx.send("❌ Ajet nije pronađen. Proveri format (npr. !quran 2:255).")
-    except Exception as e:
-        print(f"QURAN ERROR: {e}")
-        await ctx.send("❌ API Error. Verovatno je preopterećen servis.")
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url_ar) as res_ar:
+            data_ar = await res_ar.json()
+
+        async with session.get(url_bs) as res_bs:
+            data_bs = await res_bs.json()
+
+    if data_ar["status"] != "OK" or data_bs["status"] != "OK":
+        return await ctx.send("❌ Greška pri dohvaćanju ajeta.")
+
+    text_ar = data_ar["data"]["text"]
+    text_bs = data_bs["data"]["text"]
+    surah_name = data_ar["data"]["surah"]["name"]
+
+    await ctx.send(f"📖 {surah_name} ({surah}:{ayah})\n\n{text_ar}\n\n📘 {text_bs}")
 
 @bot.command()
 async def blud(ctx, member: discord.Member=None):
