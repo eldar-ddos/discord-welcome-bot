@@ -94,7 +94,7 @@ async def on_message(message):
                         await message.reply(output[:1990] if len(output) > 2000 else output)
                     except Exception as e:
                         print(f"DEBUG ERROR: {e}")
-                        await message.reply("CPU mi se pregreva od tvoje gluposti. (API issue) 💀")
+                        await message.reply("AI trenutno nije u funkciji... 💀")
 
     await bot.process_commands(message)
 
@@ -130,7 +130,7 @@ async def roast(ctx, member: discord.Member = None):
     if not target: return await ctx.send("Taguj nekog da ga ugasim.")
     await ctx.send(f"{target.mention}, {random.choice(EXTRA_ROASTS)}")
 
-# --- Quran Command (Popravljen za Arapski + Prevod) ---
+# --- Quran Command (Arapski + Prevod Mehanović) ---
 @bot.command()
 async def quran(ctx, ref=None):
     if not ref or ":" not in ref:
@@ -139,7 +139,8 @@ async def quran(ctx, ref=None):
     try:
         surah, ayah = ref.split(":")
         url_ar = f"https://api.alquran.cloud/v1/ayah/{surah}:{ayah}/ar"
-        url_bs = f"https://api.alquran.cloud/v1/ayah/{surah}:{ayah}/bs.korkut"
+        # Promenjeno na bs.mehanovic
+        url_bs = f"https://api.alquran.cloud/v1/ayah/{surah}:{ayah}/bs.mehanovic"
 
         async with aiohttp.ClientSession() as session:
             async with session.get(url_ar) as res_ar, session.get(url_bs) as res_bs:
@@ -151,16 +152,15 @@ async def quran(ctx, ref=None):
             text_bs = data_bs["data"]["text"]
             s_name = data_ar["data"]["surah"]["name"]
             
-            # Formatiranje poruke: Arapski tekst pa prevod ispod
             response = (
                 f"📖 **{s_name} ({surah}:{ayah})**\n"
                 f"━━━━━━━━━━━━━━━━━━━━\n"
                 f"🕌 **Arabic:**\n`{text_ar}`\n\n"
-                f"📘 **Prevod (Korkut):**\n*{text_bs}*"
+                f"📘 **Prevod (Mehanović):**\n*{text_bs}*"
             )
             await ctx.send(response)
         else:
-            await ctx.send("❌ Ajet nije pronađen. Proveri broj sure i ajeta.")
+            await ctx.send("❌ Ajet nije pronađen ili prevod Mehanovića nije dostupan za ovu referencu.")
     except Exception as e:
         print(f"QURAN ERROR: {e}")
         await ctx.send("❌ Greška pri komunikaciji sa API-jem. Pokušaj kasnije.")
@@ -173,7 +173,7 @@ async def blud(ctx, member: discord.Member=None):
 @bot.command()
 async def help(ctx):
     embed = discord.Embed(title="📜 Ikhwa-AI Manifest", color=0x000000)
-    embed.add_field(name="Base", value="`!roast`, `!quran`, `!blud`, `!doner`, `!whomadeu`", inline=False)
+    embed.add_field(name="Base", value="`!roast`, `!quran`, `!blud`, `!whomadeu`", inline=False)
     if is_owner(ctx):
         embed.add_field(name="Elite", value="`!vm`, `!vf`", inline=False)
     embed.set_footer(text="Developed by DunyaStranger | Groq Engine")
