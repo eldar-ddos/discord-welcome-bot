@@ -101,9 +101,17 @@ async def on_message(message):
                     if len(output) > 2000: output = output[:1990] + "..."
                     await message.reply(output)
                 except Exception as e:
-                    print(f"Gemini Error: {e}")
-                    await message.reply("CPU mi se pregreva od tvoje gluposti. (API Error) 💀")
-
+                # Ovo će ispisati tačnu grešku u Railway -> Logs
+                print(f"DEBUG GEMINI ERROR: {e}")
+                
+                # Bot će ti na Discordu reći šta je tačno problem (privremeno, dok ne popraviš)
+                error_msg = str(e)
+                if "API_KEY_INVALID" in error_msg:
+                    await message.reply("Brate, ovaj API ključ ti ne valja. Generiši novi. 💀")
+                elif "SAFETY" in error_msg:
+                    await message.reply("Google mi cenzuriše rečnik jer sam previše 'ruthless'. 🤡")
+                else:
+                    await message.reply(f"API Error: {error_msg[:100]}")
     await bot.process_commands(message)
 
 # --- Commands ---
