@@ -55,6 +55,28 @@ EXTRA_ROASTS = [
 def is_owner(ctx):
     return any(role.name == OWNER_ROLE_NAME for role in ctx.author.roles)
 
+
+@bot.command()
+async def vm(ctx, *, member: discord.Member=None):
+    if not is_owner(ctx): return await ctx.send("❌ Nemaš ovlaštenja.")
+    if not member: return await ctx.send("Taguj membera.")
+    role = discord.utils.get(ctx.guild.roles, name="VERIFIKOVAN")
+    if role:
+        await member.add_roles(role)
+        return await ctx.send(f"{member.mention} sada ima ulogu {role.name} ✅")
+    await ctx.send("Role ne postoji.")
+
+@bot.command()
+async def vf(ctx, *, member: discord.Member=None):
+    if not is_owner(ctx): return await ctx.send("❌ Nemaš ovlaštenja.")
+    if not member: return await ctx.send("Taguj membera.")
+    role = discord.utils.get(ctx.guild.roles, name="VERIFIKOVANA")
+    if role:
+        await member.add_roles(role)
+        return await ctx.send(f"{member.mention} sada ima ulogu {role.name} ✅")
+    await ctx.send("Role ne postoji.")
+
+
 # --- Events ---
 @bot.event
 async def on_ready():
