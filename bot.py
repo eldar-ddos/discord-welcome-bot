@@ -32,8 +32,9 @@ safety_settings = [
     {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_ONLY_HIGH"},
 ]
 
+# Koristimo stabilan naziv modela da izbegnemo 404 grešku
 model = genai.GenerativeModel(
-    model_name='gemini-1.5-flash',
+    model_name='gemini-1.5-flash-latest', 
     system_instruction=instruction,
     safety_settings=safety_settings
 )
@@ -60,6 +61,15 @@ WELCOME_CHANNEL_ID = 1428257626113966112
 OWNER_ROLE_NAME = "👑・OWNER"
 tag_counter = {}
 
+EXTRA_ROASTS = [
+    "nećeš ti meni ovdje 'Thanks god'...", "IQ ravan majmunu.", "NPC.", "Oćeš ban?",
+    "ti si 404 not found.", "malo jači od pavlake.", "ni tutorial ti ne pomaže.",
+    "Imaš vrijeme za discord a nemaš za Kur'an", "Kaže lik koji ne zna ni amme džuz"
+]
+
+def is_owner(ctx):
+    return any(role.name == OWNER_ROLE_NAME for role in ctx.author.roles)
+
 # --- Events ---
 @bot.event
 async def on_ready():
@@ -83,38 +93,35 @@ async def on_message(message):
         if tag_counter[uid] >= 10:
             await message.channel.send("Ne smaraj, NPC. 💀")
             tag_counter[uid] = 0
-            return
-
-        # 2. Gemini AI Odgovor
-        user_input = message.content.replace(f'<@{bot.user.id}>', '').strip()
-        
-        if not user_input:
-            await message.reply("Šta me taguješ bez teksta, jesi li cooked? 🤡")
         else:
-            async with message.channel.typing():
-                try:
-                    prompt = f"User {message.author.name} says: {user_input}"
-                    response = model.generate_content(prompt)
-                    
-                    output = response.text
-                    if len(output) > 2000: 
-                        output = output[:1990] + "..."
-                    await message.reply(output)
-                except Exception as e:
-                    print(f"DEBUG GEMINI ERROR: {e}")
-                    error_msg = str(e)
-                    if "API_KEY_INVALID" in error_msg:
-                        await message.reply("Brate, ovaj API ključ ti ne valja. Generiši novi. 💀")
-                    elif "SAFETY" in error_msg:
-                        await message.reply("Google mi cenzuriše rečnik jer sam previše 'ruthless'. 🤡")
-                    else:
-                        await message.reply(f"API Error: {error_msg[:100]}")
+            user_input = message.content.replace(f'<@{bot.user.id}>', '').strip()
+            if not user_input:
+                await message.reply("Šta me taguješ bez teksta, jesi li cooked? 🤡")
+            else:
+                async with message.channel.typing():
+                    try:
+                        prompt = f"User {message.author.name} says: {user_input}"
+                        response = model.generate_content(prompt)
+                        output = response.text
+                        if len(output) > 2000: output = output[:1990] + "..."
+                        await message.reply(output)
+                    except Exception as e:
+                        print(f"DEBUG GEMINI ERROR: {e}")
+                        await message.reply(f"CPU mi se pregreva... (Error: {str(e)[:50]})")
 
+    # KLJUČNO: Dozvoljava komandama (!roast, !help) da rade
     await bot.process_commands(message)
 
 # --- Commands ---
 @bot.command()
-async def whomadeu(ctx): await ctx.send("🤖 Napravljen od DunyaStranger & assalafiyy.")
+async def whomadeu(ctx): 
+    await ctx.send("🤖 Napravljen od DunyaStranger & assalafiyy.")
+
+@bot.command()
+async def roast(ctx, member: discord.Member = None):
+    if not member: return await ctx.send("Taguj nekog, genije.")
+    chosen = random.choice(EXTRA_ROASTS)
+    await ctx.send(f"{member.mention}, {chosen}")
 
 @bot.command()
 async def quran(ctx, ref=None):
@@ -125,6 +132,12 @@ async def quran(ctx, ref=None):
             data = await r.json()
             if data["status"] == "OK":
                 await ctx.send(f"📖 {data['data']['surah']['name']} ({ref})\n{data['data']['text']}")
+
+@bot.command()
+async def help(ctx):
+    embed = discord.Embed(title="📖 Ikhwa Bot Help", color=0x2ecc71)
+    embed.add_field(name="Commands", value="`!roast`, `!quran`, `!whomadeu`", inline=False)
+    await ctx.send(embed=embed)
 
 # --- Telegram Sync ---
 async def check_telegram_updates():
