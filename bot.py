@@ -350,7 +350,7 @@ async def roast(ctx, member: discord.Member=None):
 import aiohttp
 
 @bot.command()
-async def quraan(ctx, ref=None):
+async def quran(ctx, ref=None):
     if not ref:
         return await ctx.send("❌ Koristi: !quran 1:2")
 
