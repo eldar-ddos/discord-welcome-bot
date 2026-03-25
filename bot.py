@@ -60,8 +60,6 @@ WELCOME_CHANNEL_ID = 1428257626113966112
 OWNER_ROLE_NAME = "👑・OWNER"
 tag_counter = {}
 
-EXTRA_ROASTS = ["nećeš ti meni ovdje 'Thanks god'...", "IQ ravan majmunu.", "NPC.", "Oćeš ban?"]
-
 # --- Events ---
 @bot.event
 async def on_ready():
@@ -77,7 +75,7 @@ async def on_message(message):
     if message.author == bot.user:
         return
 
-    # 1. Spam protection za tagovanje
+    # 1. Spam protection & Mention detection
     if bot.user.mentioned_in(message):
         uid = message.author.id
         tag_counter[uid] = tag_counter.get(uid, 0) + 1
@@ -87,19 +85,23 @@ async def on_message(message):
             tag_counter[uid] = 0
             return
 
-else:
+        # 2. Gemini AI Odgovor
+        user_input = message.content.replace(f'<@{bot.user.id}>', '').strip()
+        
+        if not user_input:
+            await message.reply("Šta me taguješ bez teksta, jesi li cooked? 🤡")
+        else:
             async with message.channel.typing():
                 try:
                     prompt = f"User {message.author.name} says: {user_input}"
                     response = model.generate_content(prompt)
                     
                     output = response.text
-                    if len(output) > 2000: output = output[:1990] + "..."
+                    if len(output) > 2000: 
+                        output = output[:1990] + "..."
                     await message.reply(output)
                 except Exception as e:
-                    # Ove linije ispod MORAJU biti uvučene u odnosu na 'except'
                     print(f"DEBUG GEMINI ERROR: {e}")
-                    
                     error_msg = str(e)
                     if "API_KEY_INVALID" in error_msg:
                         await message.reply("Brate, ovaj API ključ ti ne valja. Generiši novi. 💀")
@@ -107,6 +109,7 @@ else:
                         await message.reply("Google mi cenzuriše rečnik jer sam previše 'ruthless'. 🤡")
                     else:
                         await message.reply(f"API Error: {error_msg[:100]}")
+
     await bot.process_commands(message)
 
 # --- Commands ---
