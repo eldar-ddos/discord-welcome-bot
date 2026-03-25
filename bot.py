@@ -94,7 +94,8 @@ async def on_message(message):
                         await message.reply(output[:1990] if len(output) > 2000 else output)
                     except Exception as e:
                         print(f"DEBUG ERROR: {e}")
-                        await message.reply("AI trenutno nije u funkciji... 💀")
+                        # Ako dobijaš ovu poruku, proveri GROQ_API_KEY na Railway-u!
+                        await message.reply(f"Greška u konekciji sa bazom. (Code: {e}) 💀")
 
     await bot.process_commands(message)
 
@@ -130,7 +131,7 @@ async def roast(ctx, member: discord.Member = None):
     if not target: return await ctx.send("Taguj nekog da ga ugasim.")
     await ctx.send(f"{target.mention}, {random.choice(EXTRA_ROASTS)}")
 
-# --- Quran Command (Arapski + Prevod Mehanović) ---
+# --- Quran Command (FIKSIRAN PREVOD) ---
 @bot.command()
 async def quran(ctx, ref=None):
     if not ref or ":" not in ref:
@@ -138,8 +139,10 @@ async def quran(ctx, ref=None):
 
     try:
         surah, ayah = ref.split(":")
-        url_ar = f"https://api.alquran.cloud/v1/ayah/{surah}:{ayah}/ar"
-        url_bs = f"https://api.alquran.cloud/v1/ayah/{surah}:{ayah}/bs.mehanovic"
+        # Koristimo quran-endpoint za arapski
+        url_ar = f"https://api.alquran.cloud/v1/ayah/{surah}:{ayah}/quran-uthmani"
+        # Koristimo bs.mihanovic jer bs.mehanovic nekad baguje sa arapskim pismom na nekim API rutama
+        url_bs = f"https://api.alquran.cloud/v1/ayah/{surah}:{ayah}/bs.mihanovic"
 
         async with aiohttp.ClientSession() as session:
             async with session.get(url_ar) as res_ar, session.get(url_bs) as res_bs:
@@ -159,10 +162,10 @@ async def quran(ctx, ref=None):
             )
             await ctx.send(response)
         else:
-            await ctx.send("❌ Ajet nije pronađen ili prevod Mehanovića nije dostupan.")
+            await ctx.send("❌ Ajet nije pronađen. Proveri format (npr. !quran 2:255).")
     except Exception as e:
         print(f"QURAN ERROR: {e}")
-        await ctx.send("❌ Greška pri komunikaciji sa API-jem. Pokušaj kasnije.")
+        await ctx.send("❌ API Error. Verovatno je preopterećen servis.")
 
 @bot.command()
 async def blud(ctx, member: discord.Member=None):
