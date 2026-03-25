@@ -270,6 +270,36 @@ async def roast(ctx, member: discord.Member=None):
     chosen_roast = random.choice(base + [f"{member.mention}, {r}" for r in EXTRA_ROASTS])
     await ctx.send(chosen_roast)
 
+import aiohttp
+
+@bot.command()
+async def quraan(ctx, ref=None):
+    if not ref:
+        return await ctx.send("❌ Koristi: !quran 1:2")
+
+    try:
+        surah, ayah = ref.split(":")
+    except:
+        return await ctx.send("❌ Format: !quran 1:2")
+
+    url_ar = f"https://api.alquran.cloud/v1/ayah/{surah}:{ayah}/ar"
+    url_bs = f"https://api.alquran.cloud/v1/ayah/{surah}:{ayah}/bs.korkut"
+
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url_ar) as res_ar:
+            data_ar = await res_ar.json()
+
+        async with session.get(url_bs) as res_bs:
+            data_bs = await res_bs.json()
+
+    if data_ar["status"] != "OK" or data_bs["status"] != "OK":
+        return await ctx.send("❌ Greška pri dohvaćanju ajeta.")
+
+    text_ar = data_ar["data"]["text"]
+    text_bs = data_bs["data"]["text"]
+    surah_name = data_ar["data"]["surah"]["name"]
+
+    await ctx.send(f"📖 **{surah_name} ({surah}:{ayah})**\n\n{text_ar}\n\n📘 {text_bs}")
 
 @bot.command()
 async def quran(ctx, *, arg=None):
