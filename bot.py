@@ -24,9 +24,6 @@ DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 GEMINI_KEY = os.getenv("GEMINI_API_KEY")
 
-DISCORD_TOKEN = "TVOJ_DISCORD_TOKEN"
-GEMINI_KEY = "AIzaSyA8xtkbFxD3..." # Tvoj novi API ključ
-
 # --- GEMINI SETUP ---
 genai.configure(api_key=GEMINI_KEY)
 
