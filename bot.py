@@ -32,9 +32,9 @@ safety_settings = [
     {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_ONLY_HIGH"},
 ]
 
-# Koristimo stabilan naziv modela da izbegnemo 404 grešku
+# FIX ZA 404: Koristimo 'models/' prefiks i 'latest' verziju
 model = genai.GenerativeModel(
-    model_name='gemini-1.5-flash-latest', 
+    model_name='models/gemini-1.5-flash-latest', 
     system_instruction=instruction,
     safety_settings=safety_settings
 )
@@ -64,7 +64,8 @@ tag_counter = {}
 EXTRA_ROASTS = [
     "nećeš ti meni ovdje 'Thanks god'...", "IQ ravan majmunu.", "NPC.", "Oćeš ban?",
     "ti si 404 not found.", "malo jači od pavlake.", "ni tutorial ti ne pomaže.",
-    "Imaš vrijeme za discord a nemaš za Kur'an", "Kaže lik koji ne zna ni amme džuz"
+    "Imaš vrijeme za discord a nemaš za Kur'an", "Kaže lik koji ne zna ni amme džuz",
+    "Jesi li testiran Rabi'om?", "Stop yapping lil bro!", "šaciii."
 ]
 
 def is_owner(ctx):
@@ -85,7 +86,7 @@ async def on_message(message):
     if message.author == bot.user:
         return
 
-    # 1. Spam protection & Mention detection
+    # 1. AI Odgovor na Tag (Mention)
     if bot.user.mentioned_in(message):
         uid = message.author.id
         tag_counter[uid] = tag_counter.get(uid, 0) + 1
@@ -107,9 +108,9 @@ async def on_message(message):
                         await message.reply(output)
                     except Exception as e:
                         print(f"DEBUG GEMINI ERROR: {e}")
-                        await message.reply(f"CPU mi se pregreva... (Error: {str(e)[:50]})")
+                        await message.reply(f"CPU mi se pregreva... (API Error: {str(e)[:50]})")
 
-    # KLJUČNO: Dozvoljava komandama (!roast, !help) da rade
+    # OVO OMOGUĆAVA DA ! KOMANDE RADE
     await bot.process_commands(message)
 
 # --- Commands ---
@@ -134,9 +135,29 @@ async def quran(ctx, ref=None):
                 await ctx.send(f"📖 {data['data']['surah']['name']} ({ref})\n{data['data']['text']}")
 
 @bot.command()
+async def blud(ctx, member: discord.Member=None):
+    if not member: member = ctx.author
+    await ctx.send(f"{member.mention}\n'I ne približavajte se bludu, jer je to razvrat...' (17:32)")
+
+@bot.command()
+async def mute(ctx, member: discord.Member=None):
+    if member == ctx.author: return await ctx.send("Kako si samo kontradiktoran.")
+    if member: return await ctx.send(f"Neću mute-ati {member.mention}, to je moj brat.")
+    await ctx.send("Nisi naveo membera.")
+
+@bot.command()
+async def vm(ctx, member: discord.Member=None):
+    if not is_owner(ctx): return await ctx.send("❌ Nemaš ovlaštenja.")
+    role = discord.utils.get(ctx.guild.roles, name="VERIFIKOVAN")
+    if role and member:
+        await member.add_roles(role)
+        await ctx.send(f"{member.mention} je sada VERIFIKOVAN ✅")
+
+@bot.command()
 async def help(ctx):
     embed = discord.Embed(title="📖 Ikhwa Bot Help", color=0x2ecc71)
-    embed.add_field(name="Commands", value="`!roast`, `!quran`, `!whomadeu`", inline=False)
+    embed.add_field(name="Commands", value="`!roast`, `!quran`, `!blud`, `!mute`, `!whomadeu`", inline=False)
+    if is_owner(ctx): embed.add_field(name="Admin", value="`!vm`, `!vf`", inline=False)
     await ctx.send(embed=embed)
 
 # --- Telegram Sync ---
