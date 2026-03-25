@@ -8,7 +8,6 @@ from threading import Thread
 import requests
 import aiohttp
 import random
-pip install aiohttp
 
 # --- Configuration ---
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
@@ -65,13 +64,12 @@ async def on_ready():
 async def on_member_join(member):
     ch = bot.get_channel(WELCOME_CHANNEL_ID)
     if ch:
-        await ch.send(f"🌙 Esselamu alejke {member.mention}, dobrodošao na Ikhwa!")
+        await ch.send(f"🌙 Esselamu alejke {member.mention}, dobrodošao na Ikhwa! Ne pravi probleme da ne budeš cooked. 💀")
 
 @bot.event
 async def on_message(message):
     if message.author == bot.user: return
 
-    # 1. AI Odgovor na Mention (@Ikhwa)
     if bot.user.mentioned_in(message):
         user_input = message.content.replace(f'<@{bot.user.id}>', '').strip()
         if not user_input:
@@ -80,7 +78,7 @@ async def on_message(message):
             uid = message.author.id
             tag_counter[uid] = tag_counter.get(uid, 0) + 1
             if tag_counter[uid] >= 10:
-                await message.channel.send("Ne smaraj, NPC. 💀")
+                await message.channel.send(f"Dosta yappinga {message.author.mention}, aura ti je u minusu. 💀")
                 tag_counter[uid] = 0
             else:
                 async with message.channel.typing():
@@ -100,7 +98,7 @@ async def on_message(message):
 
     await bot.process_commands(message)
 
-# --- Commands (Admin & Verification) ---
+# --- Admin Commands ---
 @bot.command()
 async def vm(ctx, *, member: discord.Member=None):
     if not is_owner(ctx): return await ctx.send("❌ Nemaš ovlaštenja.")
@@ -108,81 +106,77 @@ async def vm(ctx, *, member: discord.Member=None):
     role = discord.utils.get(ctx.guild.roles, name="VERIFIKOVAN")
     if role:
         await member.add_roles(role)
-        return await ctx.send(f"{member.mention} sada ima ulogu {role.name} ✅")
-    await ctx.send("Role 'VERIFIKOVAN' ne postoji na serveru.")
+        return await ctx.send(f"Uspješna verifikacija za {member.mention}. Akida check: PASSED. ✅")
+    await ctx.send("Role 'VERIFIKOVAN' ne postoji.")
 
 @bot.command()
 async def vf(ctx, *, member: discord.Member=None):
     if not is_owner(ctx): return await ctx.send("❌ Nemaš ovlaštenja.")
-    if not member: return await ctx.send("Taguj membera.")
+    if not member: return await ctx.send("Taguj žensko, bludnik.")
     role = discord.utils.get(ctx.guild.roles, name="VERIFIKOVANA")
     if role:
         await member.add_roles(role)
-        return await ctx.send(f"{member.mention} sada ima ulogu {role.name} ✅")
-    await ctx.send("Role 'VERIFIKOVANA' ne postoji na serveru.")
+        return await ctx.send(f"{member.mention} je sada VERIFIKOVANA. ✅")
+    await ctx.send("Role 'VERIFIKOVANA' ne postoji.")
 
-# --- Commands (User) ---
+# --- User Commands ---
 @bot.command()
 async def whomadeu(ctx): 
-    await ctx.send("🤖 Ja sam AI napravljen od DunyaStranger u collab sa assalafiyy 💻")
+    await ctx.send("🤖 Ja sam Ikhwa-AI, kreacija DunyaStranger-a. Ti si samo user, ne pitaj previše. 💻")
 
 @bot.command()
 async def roast(ctx, member: discord.Member = None):
     target = member or (ctx.message.mentions[0] if ctx.message.mentions else None)
-    if not target: return await ctx.send("Taguj nekog, genije.")
+    if not target: return await ctx.send("Taguj nekog da ga ugasim.")
     await ctx.send(f"{target.mention}, {random.choice(EXTRA_ROASTS)}")
 
-import aiohttp
-
+# --- Quran Command (Popravljen za Arapski + Prevod) ---
 @bot.command()
 async def quran(ctx, ref=None):
-    if not ref:
-        return await ctx.send("❌ Koristi: !quran 1:2")
+    if not ref or ":" not in ref:
+        return await ctx.send("❌ Format: !quran 1:2")
 
     try:
         surah, ayah = ref.split(":")
-    except:
-        return await ctx.send("❌ Format: !quran 1:2")
+        url_ar = f"https://api.alquran.cloud/v1/ayah/{surah}:{ayah}/ar"
+        url_bs = f"https://api.alquran.cloud/v1/ayah/{surah}:{ayah}/bs.korkut"
 
-    url_ar = f"https://api.alquran.cloud/v1/ayah/{surah}:{ayah}/ar"
-    url_bs = f"https://api.alquran.cloud/v1/ayah/{surah}:{ayah}/bs.korkut"
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url_ar) as res_ar, session.get(url_bs) as res_bs:
+                data_ar = await res_ar.json()
+                data_bs = await res_bs.json()
 
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url_ar) as res_ar:
-            data_ar = await res_ar.json()
-
-        async with session.get(url_bs) as res_bs:
-            data_bs = await res_bs.json()
-
-    if data_ar["status"] != "OK" or data_bs["status"] != "OK":
-        return await ctx.send("❌ Greška pri dohvaćanju ajeta.")
-
-    text_ar = data_ar["data"]["text"]
-    text_bs = data_bs["data"]["text"]
-    surah_name = data_ar["data"]["surah"]["name"]
-
-    await ctx.send(f"📖 **{surah_name} ({surah}:{ayah})**\n\n{text_ar}\n\n📘 {text_bs}")
+        if data_ar["status"] == "OK" and data_bs["status"] == "OK":
+            text_ar = data_ar["data"]["text"]
+            text_bs = data_bs["data"]["text"]
+            s_name = data_ar["data"]["surah"]["name"]
+            
+            # Formatiranje poruke: Arapski tekst pa prevod ispod
+            response = (
+                f"📖 **{s_name} ({surah}:{ayah})**\n"
+                f"━━━━━━━━━━━━━━━━━━━━\n"
+                f"🕌 **Arabic:**\n`{text_ar}`\n\n"
+                f"📘 **Prevod (Korkut):**\n*{text_bs}*"
+            )
+            await ctx.send(response)
+        else:
+            await ctx.send("❌ Ajet nije pronađen. Proveri broj sure i ajeta.")
+    except Exception as e:
+        print(f"QURAN ERROR: {e}")
+        await ctx.send("❌ Greška pri komunikaciji sa API-jem. Pokušaj kasnije.")
 
 @bot.command()
 async def blud(ctx, member: discord.Member=None):
     target = member or ctx.author
-    await ctx.send(f"{target.mention}\n'I ne približavajte se bludu, jer je to razvrat...' (17:32)")
-
-@bot.command()
-async def doner(ctx):
-    await ctx.send("Prenosi se da je Poslanik ﷺ jeo meso piletine. (Sahih Buhari 5517) 🍗")
-
-@bot.command()
-async def mute(ctx, member: discord.Member=None):
-    if member == ctx.author: return await ctx.send("Kako si samo kontradiktoran.")
-    await ctx.send(f"Neću mute-ati {member.mention if member else 'nikoga'}, to je moj brat.")
+    await ctx.send(f"{target.mention}\n'I ne približavajte se bludu, jer je to razvrat...' (17:32) 💀")
 
 @bot.command()
 async def help(ctx):
-    embed = discord.Embed(title="📖 Ikhwa Bot Help", color=0x2ecc71)
-    embed.add_field(name="User Commands", value="`!roast`, `!mute`, `!whomadeu`, `!blud`, `!doner`, `!quran`", inline=False)
+    embed = discord.Embed(title="📜 Ikhwa-AI Manifest", color=0x000000)
+    embed.add_field(name="Base", value="`!roast`, `!quran`, `!blud`, `!doner`, `!whomadeu`", inline=False)
     if is_owner(ctx):
-        embed.add_field(name="Admin Commands", value="`!vm` (Verifikovan), `!vf` (Verifikovana)", inline=False)
+        embed.add_field(name="Elite", value="`!vm`, `!vf`", inline=False)
+    embed.set_footer(text="Developed by DunyaStranger | Groq Engine")
     await ctx.send(embed=embed)
 
 # --- Telegram Sync ---
@@ -193,15 +187,16 @@ async def check_telegram_updates():
     while True:
         try:
             url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getUpdates?offset={last_id+1}"
-            resp = requests.get(url).json()
-            if "result" in resp:
-                for up in resp["result"]:
-                    last_id = up["update_id"]
-                    if "message" in up and "text" in up["message"]:
-                        if ch: await ch.send(f"📢 **Telegram Sync:** {up['message']['text']}")
-        except Exception as e:
-            print(f"Telegram Error: {e}")
-        await asyncio.sleep(10)
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url) as resp:
+                    data = await resp.json()
+                    if "result" in data:
+                        for up in data["result"]:
+                            last_id = up["update_id"]
+                            if "message" in up and "text" in up["message"]:
+                                if ch: await ch.send(f"📢 **Telegram Sync:** {up['message']['text']}")
+        except: pass
+        await asyncio.sleep(12)
 
 @bot.event
 async def setup_hook():
