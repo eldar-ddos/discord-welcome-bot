@@ -14,7 +14,7 @@ DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
-# --- Groq Setup (Zamena za Gemini) ---
+# --- Groq AI Setup ---
 client = Groq(api_key=GROQ_API_KEY)
 
 instruction = (
@@ -55,32 +55,16 @@ EXTRA_ROASTS = [
 def is_owner(ctx):
     return any(role.name == OWNER_ROLE_NAME for role in ctx.author.roles)
 
-
-@bot.command()
-async def vm(ctx, *, member: discord.Member=None):
-    if not is_owner(ctx): return await ctx.send("❌ Nemaš ovlaštenja.")
-    if not member: return await ctx.send("Taguj membera.")
-    role = discord.utils.get(ctx.guild.roles, name="VERIFIKOVAN")
-    if role:
-        await member.add_roles(role)
-        return await ctx.send(f"{member.mention} sada ima ulogu {role.name} ✅")
-    await ctx.send("Role ne postoji.")
-
-@bot.command()
-async def vf(ctx, *, member: discord.Member=None):
-    if not is_owner(ctx): return await ctx.send("❌ Nemaš ovlaštenja.")
-    if not member: return await ctx.send("Taguj membera.")
-    role = discord.utils.get(ctx.guild.roles, name="VERIFIKOVANA")
-    if role:
-        await member.add_roles(role)
-        return await ctx.send(f"{member.mention} sada ima ulogu {role.name} ✅")
-    await ctx.send("Role ne postoji.")
-
-
 # --- Events ---
 @bot.event
 async def on_ready():
     print(f"Ikhwa-AI online (Groq Engine): {bot.user}")
+
+@bot.event
+async def on_member_join(member):
+    ch = bot.get_channel(WELCOME_CHANNEL_ID)
+    if ch:
+        await ch.send(f"🌙 Esselamu alejke {member.mention}, dobrodošao na Ikhwa!")
 
 @bot.event
 async def on_message(message):
@@ -109,25 +93,43 @@ async def on_message(message):
                         )
                         output = chat_completion.choices[0].message.content
                         await message.reply(output[:1990] if len(output) > 2000 else output)
-                        
-                except Exception as e:
-                    print(f"AI ERROR: {e}")
-                    # Ovo će ti u Discordu reći tačno šta nije u redu (npr. Invalid API Key)
-                    await message.reply(f"Greška: {str(e)[:100]}")
+                    except Exception as e:
+                        print(f"DEBUG ERROR: {e}")
+                        await message.reply("CPU mi se pregreva od tvoje gluposti. (API issue) 💀")
 
     await bot.process_commands(message)
 
-# --- Commands (Sve tvoje komande su ovde) ---
+# --- Commands (Admin & Verification) ---
+@bot.command()
+async def vm(ctx, *, member: discord.Member=None):
+    if not is_owner(ctx): return await ctx.send("❌ Nemaš ovlaštenja.")
+    if not member: return await ctx.send("Taguj membera, NPC.")
+    role = discord.utils.get(ctx.guild.roles, name="VERIFIKOVAN")
+    if role:
+        await member.add_roles(role)
+        return await ctx.send(f"{member.mention} sada ima ulogu {role.name} ✅")
+    await ctx.send("Role 'VERIFIKOVAN' ne postoji na serveru.")
+
+@bot.command()
+async def vf(ctx, *, member: discord.Member=None):
+    if not is_owner(ctx): return await ctx.send("❌ Nemaš ovlaštenja.")
+    if not member: return await ctx.send("Taguj membera.")
+    role = discord.utils.get(ctx.guild.roles, name="VERIFIKOVANA")
+    if role:
+        await member.add_roles(role)
+        return await ctx.send(f"{member.mention} sada ima ulogu {role.name} ✅")
+    await ctx.send("Role 'VERIFIKOVANA' ne postoji na serveru.")
+
+# --- Commands (User) ---
 @bot.command()
 async def whomadeu(ctx): 
     await ctx.send("🤖 Ja sam AI napravljen od DunyaStranger u collab sa assalafiyy 💻")
 
 @bot.command()
 async def roast(ctx, member: discord.Member = None):
-    if not member: 
-        if ctx.message.mentions: member = ctx.message.mentions[0]
-        else: return await ctx.send("Taguj nekog, genije.")
-    await ctx.send(f"{member.mention}, {random.choice(EXTRA_ROASTS)}")
+    target = member or (ctx.message.mentions[0] if ctx.message.mentions else None)
+    if not target: return await ctx.send("Taguj nekog, genije.")
+    await ctx.send(f"{target.mention}, {random.choice(EXTRA_ROASTS)}")
 
 @bot.command()
 async def quran(ctx, ref=None):
@@ -138,11 +140,13 @@ async def quran(ctx, ref=None):
             data = await r.json()
             if data["status"] == "OK":
                 await ctx.send(f"📖 {data['data']['surah']['name']} ({ref})\n{data['data']['text']}")
+            else:
+                await ctx.send("Ajet nije pronađen.")
 
 @bot.command()
 async def blud(ctx, member: discord.Member=None):
-    if not member: member = ctx.author
-    await ctx.send(f"{member.mention}\n'I ne približavajte se bludu, jer je to razvrat...' (17:32)")
+    target = member or ctx.author
+    await ctx.send(f"{target.mention}\n'I ne približavajte se bludu, jer je to razvrat...' (17:32)")
 
 @bot.command()
 async def doner(ctx):
@@ -156,7 +160,9 @@ async def mute(ctx, member: discord.Member=None):
 @bot.command()
 async def help(ctx):
     embed = discord.Embed(title="📖 Ikhwa Bot Help", color=0x2ecc71)
-    embed.add_field(name="Commands", value="`!roast`, `!mute`, `!whomadeu`, `!blud`, `!doner`, `!quran`", inline=False)
+    embed.add_field(name="User Commands", value="`!roast`, `!mute`, `!whomadeu`, `!blud`, `!doner`, `!quran`", inline=False)
+    if is_owner(ctx):
+        embed.add_field(name="Admin Commands", value="`!vm` (Verifikovan), `!vf` (Verifikovana)", inline=False)
     await ctx.send(embed=embed)
 
 # --- Telegram Sync ---
@@ -168,11 +174,13 @@ async def check_telegram_updates():
         try:
             url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getUpdates?offset={last_id+1}"
             resp = requests.get(url).json()
-            for up in resp.get("result", []):
-                last_id = up["update_id"]
-                if "message" in up and "text" in up["message"]:
-                    await ch.send(f"📢 **Telegram Sync:** {up['message']['text']}")
-        except: pass
+            if "result" in resp:
+                for up in resp["result"]:
+                    last_id = up["update_id"]
+                    if "message" in up and "text" in up["message"]:
+                        if ch: await ch.send(f"📢 **Telegram Sync:** {up['message']['text']}")
+        except Exception as e:
+            print(f"Telegram Error: {e}")
         await asyncio.sleep(10)
 
 @bot.event
