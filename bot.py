@@ -109,9 +109,11 @@ async def on_message(message):
                         )
                         output = chat_completion.choices[0].message.content
                         await message.reply(output[:1990] if len(output) > 2000 else output)
-                    except Exception as e:
-                        print(f"DEBUG ERROR: {e}")
-                        await message.reply("CPU mi se pregreva od tvoje gluposti. (API issue) 💀")
+                        
+                except Exception as e:
+                    print(f"AI ERROR: {e}")
+                    # Ovo će ti u Discordu reći tačno šta nije u redu (npr. Invalid API Key)
+                    await message.reply(f"Greška: {str(e)[:100]}")
 
     await bot.process_commands(message)
 
