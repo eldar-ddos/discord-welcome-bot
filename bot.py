@@ -13,6 +13,7 @@ DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 BUMP_CHANNEL_ID = 1442563320841371689
 ADMIN_LOG_CHANNEL_ID = 1486617811249008641  # bump-channel-ai
+ADMIN_ROLE_ID = 1486619177119911996  # <--- OVDJE STAVI PRAVI ID OD @ADMIN ROLE
 
 client = Groq(api_key=GROQ_API_KEY)
 
@@ -60,9 +61,9 @@ async def auto_bump_reminder():
     
     if log_channel:
         try:
-            # Bot više ne šalje /bump sam jer Discord to blokira.
-            # Umjesto toga, taguje admine u privatnom kanalu.
-            await log_channel.send(f"🔔 @admini, vrijeme je za **/bump** u <#{BUMP_CHANNEL_ID}>!")
+            # Šalje samo jednu poruku koja ispravno taguje @ADMIN rolu
+            # Format <@&ID> služi za tagovanje uloga
+            await log_channel.send(f"🔔 <@&{ADMIN_ROLE_ID}>, vrijeme je za **/bump** u <#{BUMP_CHANNEL_ID}>!")
             print("Bump reminder poslan u admin kanal.")
         except Exception as e:
             print(f"Greška prilikom slanja remindera: {e}")
