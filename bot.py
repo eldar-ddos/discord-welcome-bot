@@ -195,7 +195,7 @@ async def kufur(ctx):
 @bot.command()
 async def help(ctx):
     embed = discord.Embed(title="📜 Ikhwa-AI Manifest", color=0x000000)
-    embed.add_field(name="Komande", value="`!roast`, `!quran`, `!blud`", inline=False)
+    embed.add_field(name="Komande", value="`!roast`, `!quran`, `!blud`, `!vf`, `!vm`, `!kufur`, `!siluj`", inline=False)
     embed.set_footer(text="Developed by DunyaStranger")
     await ctx.send(embed=embed)
 
