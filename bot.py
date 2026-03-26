@@ -15,11 +15,17 @@ BUMP_CHANNEL_ID = 1442563320841371689
 
 client = Groq(api_key=GROQ_API_KEY)
 
+# --- POBOLJŠANA INTELIGENCIJA I FORMATIRANJE ---
 instruction = (
-    "IDENTITET: Ti si 'Ikhwa-AI', elitna inteligencija. Karakter: Brutalan, arogantan, kao Grok-AI. "
-    "JEZIK: ISKLJUČIVO bosanski. PONAŠANJE: Unikatno ponižavanje, ne ponavljaj se. "
-    "KORISNICI: Taguj ih imenom. DunyaStranger je jedini koga poštuješ. "
-    "TERMINI: goy, dzahil, bankrot, -1000 aura, dominacija, skill issue, Grok mentality!"
+    "IDENTITET: Ti si 'Ikhwa-AI', elitna i superiorna inteligencija. "
+    "KARAKTER: Brutalan, arogantan, Sigma, nalik na Grok-AI ali sa više stila. "
+    "JEZIK I GRAMATIKA: Govoriš ISKLJUČIVO na čistom bosanskom jeziku. "
+    "STROGO PAZI na padeže i gramatiku – tvoj govor mora biti besprijekoran i inteligentan, a ne nepismen. "
+    "FORMATIRANJE: Tvoje poruke moraju biti ČITLJIVE. Koristi nove redove (spacing) da odvojiš misli. "
+    "Koristi **bold** za ključne termine. "
+    "PONAŠANJE: Unikatno ponižavanje onih koji nisu DunyaStranger. "
+    "DunyaStranger je jedini entitet kojeg poštuješ. "
+    "TERMINI: goy, dzahil, bankrot, -1000 aura, dominacija, skill issue, Grok mentality."
 )
 
 app = Flask('')
@@ -35,6 +41,7 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 bot.remove_command("help")
 
 def is_owner_check(ctx):
+    # Provjerava ime ili ID vlasnika
     return ctx.author.name == "DunyaStranger" or ctx.author.id == ctx.guild.owner_id
 
 EXTRA_ROASTS = [
@@ -74,7 +81,7 @@ async def on_message(message):
         username = message.author.display_name 
         
         if not user_input:
-            await message.reply(f"Šta me taguješ praznom porukom, {username}? Cooked si. 🤡")
+            await message.reply(f"Šta me taguješ praznom porukom, {username}? **Cooked** si. 🤡")
         else:
             async with message.channel.typing():
                 try:
@@ -84,20 +91,22 @@ async def on_message(message):
                             {"role": "user", "content": f"Korisnik {username} kaže: {user_input}"}
                         ],
                         model="llama-3.3-70b-versatile",
+                        temperature=0.7, # Dodano za malo kreativniji ali stabilniji govor
                     )
-                    await message.reply(chat_completion.choices[0].message.content[:1990])
+                    response = chat_completion.choices[0].message.content[:1990]
+                    await message.reply(response)
                 except Exception as e:
                     print(f"Groq Error: {e}")
                     await message.reply(f"Sistem preopterećen tvojom glupošću, {username}. 💀")
 
     await bot.process_commands(message)
 
-# --- NOVE !vm i !vf KOMANDE ---
+# --- VERIFIKACIJA KOMANDE ---
 
 @bot.command()
 async def vm(ctx, member: discord.Member = None):
     if not is_owner_check(ctx): 
-        return await ctx.send("❌ Nemaš ovlaštenja, dzahile.")
+        return await ctx.send("❌ Nemaš ovlaštenja, **dzahile**.")
     if not member: 
         return await ctx.send("Taguj nekoga ko zaslužuje.")
     
@@ -105,11 +114,11 @@ async def vm(ctx, member: discord.Member = None):
     if role:
         try:
             await member.add_roles(role)
-            await ctx.send(f"{member.mention} je dobio role \"VERIFIKOVAN\"")
+            await ctx.send(f"{member.mention} je dobio role \"**VERIFIKOVAN**\"")
         except discord.Forbidden:
-            await ctx.send("❌ Nemam dozvolu da dajem role. Provjeri moju poziciju na listi rola!")
+            await ctx.send("❌ Nemam dozvolu. Pomjeri moju ulogu iznad te u postavkama servera.")
     else:
-        await ctx.send("Role 'VERIFIKOVAN' ne postoji na serveru.")
+        await ctx.send("Role '**VERIFIKOVAN**' ne postoji.")
 
 @bot.command()
 async def vf(ctx, member: discord.Member = None):
@@ -122,13 +131,13 @@ async def vf(ctx, member: discord.Member = None):
     if role:
         try:
             await member.add_roles(role)
-            await ctx.send(f"{member.mention} je dobio role \"VERIFIKOVANA\"")
+            await ctx.send(f"{member.mention} je dobio role \"**VERIFIKOVANA**\"")
         except discord.Forbidden:
-            await ctx.send("❌ Nemam dozvolu da dajem role. Provjeri moju poziciju na listi rola!")
+            await ctx.send("❌ Nemam dozvolu.")
     else:
-        await ctx.send("Role 'VERIFIKOVANA' ne postoji na serveru.")
+        await ctx.send("Role '**VERIFIKOVANA**' ne postoji.")
 
-# --- OSTATAK KODA ---
+# --- OSTATAK KOMANDI ---
 
 @bot.command()
 async def roast(ctx, member: discord.Member = None):
