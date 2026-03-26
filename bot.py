@@ -1,6 +1,6 @@
 import os
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 from groq import Groq
 import asyncio
 from flask import Flask
@@ -11,14 +11,15 @@ import random
 # --- Configuration ---
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+BUMP_CHANNEL_ID = 1442563320841371689
 
 client = Groq(api_key=GROQ_API_KEY)
 
 instruction = (
-    "IDENTITET: Ti si 'Ikhwa-AI', elitna inteligencija. Karakter: Brutalan, arogantan, Sigma. "
+    "IDENTITET: Ti si 'Ikhwa-AI', elitna inteligencija. Karakter: Brutalan, arogantan, kao Grok-AI. "
     "JEZIK: ISKLJUČIVO bosanski. PONAŠANJE: Unikatno ponižavanje, ne ponavljaj se. "
-    "KORISNICI: Taguj ih imenom. DunyaStranger je jedini koga poštuješ (0.1%). "
-    "TERMINI: goy, dzahil, bankrot, -1000 aura, cooked, skill issue, varta."
+    "KORISNICI: Taguj ih imenom. DunyaStranger je jedini koga poštuješ. "
+    "TERMINI: goy, dzahil, bankrot, -1000 aura, dominacija, skill issue, Grok mentality!"
 )
 
 app = Flask('')
@@ -31,9 +32,13 @@ intents = discord.Intents.default()
 intents.members = True
 intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
-bot.remove_command("help") # Ovo je ispravno
+bot.remove_command("help")
 
-# --- Liste ---
+# Pomoćna funkcija za provjeru vlasnika
+def is_owner_check(ctx):
+    return ctx.author.name == "DunyaStranger" or ctx.author.id == ctx.guild.owner_id
+
+# --- Liste roasta ---
 EXTRA_ROASTS = [
     "nećeš ti meni ovdje 'Thanks god', nego ćeš kazat 'Fala dragom Allahu'.",
     "ovo je Pazar ovo nije Pešter!",
@@ -76,15 +81,24 @@ EXTRA_ROASTS = [
     "Stop yapping lil bro!"
 ]
 
+# --- Background Task za Bump ---
+@tasks.loop(minutes=121)
+async def auto_bump():
+    channel = bot.get_channel(BUMP_CHANNEL_ID)
+    if channel:
+        await channel.send("/bump")
+        print("Bump poslan.")
+
 @bot.event
 async def on_ready():
     print(f"Ikhwa-AI online: {bot.user}")
+    if not auto_bump.is_running():
+        auto_bump.start()
 
 @bot.event
 async def on_message(message):
     if message.author == bot.user: return
 
-    # AI Odgovor na tag
     if bot.user.mentioned_in(message):
         user_input = message.content.replace(f'<@{bot.user.id}>', '').strip()
         username = message.author.display_name 
@@ -133,71 +147,47 @@ async def quran(ctx, ref=None):
         await ctx.send("❌ Greška u sistemu.")
 
 @bot.command()
+async def vm(ctx, member: discord.Member = None):
+    if not is_owner_check(ctx): return await ctx.send("❌ Nemaš ovlaštenja, dzahile.")
+    if not member: return await ctx.send("Taguj nekoga ko zaslužuje.")
+    
+    role = discord.utils.get(ctx.guild.roles, name="VERIFIKOVAN")
+    if role:
+        await member.add_roles(role)
+        await ctx.send(f"Brat {member.mention} je sada **VERIFIKOVAN**. ✅")
+    else:
+        await ctx.send("Role 'VERIFIKOVAN' ne postoji na serveru.")
+
+@bot.command()
+async def vf(ctx, member: discord.Member = None):
+    if not is_owner_check(ctx): return await ctx.send("❌ Nemaš ovlaštenja.")
+    if not member: return await ctx.send("Taguj osobu.")
+    
+    role = discord.utils.get(ctx.guild.roles, name="VERIFIKOVANA")
+    if role:
+        await member.add_roles(role)
+        await ctx.send(f"Sestra {member.mention} je sada **VERIFIKOVANA**. ✅")
+    else:
+        await ctx.send("Role 'VERIFIKOVANA' ne postoji na serveru.")
+
+@bot.command()
+async def help(ctx):
+    embed = discord.Embed(title="📜 Ikhwa-AI Manifest", color=0x000000)
+    embed.add_field(name="Komande", value="`!roast`, `!quran`, `!vm`, `!vf`, `!kufur`, `!siluj` (Automatski bump aktivan)", inline=False)
+    embed.set_footer(text="Developed by DunyaStranger")
+    await ctx.send(embed=embed)
+
+# Ostale komande
+@bot.command()
 async def blud(ctx, member: discord.Member=None):
     target = member or ctx.author
     await ctx.send(f"{target.mention}\n'I ne približavajte se bludu...' (17:32) 💀")
 
 @bot.command()
-
-async def vm(ctx, *, member: discord.Member=None):
-
-    if not is_owner(ctx): return await ctx.send("❌ Nemaš ovlaštenja.")
-
-    if not member: return await ctx.send("Taguj membera.")
-
-    role = discord.utils.get(ctx.guild.roles, name="VERIFIKOVAN")
-
-    if role:
-
-        await member.add_roles(role)
-
-        return await ctx.send(f"{member.mention} sada ima ulogu {role.name} ✅")
-
-    await ctx.send("Role ne postoji.")
-
-
-
-
+async def siluj(ctx): await ctx.send("Daj druže šta pokušavaš sa ovim")
 
 @bot.command()
-
-async def vf(ctx, *, member: discord.Member=None):
-
-    if not is_owner(ctx): return await ctx.send("❌ Nemaš ovlaštenja.")
-
-    if not member: return await ctx.send("Taguj membera.")
-
-    role = discord.utils.get(ctx.guild.roles, name="VERIFIKOVANA")
-
-    if role:
-
-        await member.add_roles(role)
-
-        return await ctx.send(f"{member.mention} sada ima ulogu {role.name} ✅")
-
-    await ctx.send("Role ne postoji.")
-
-
-@bot.command()
-
-async def siluj(ctx):
-
-    await ctx.send("Daj druže šta pokušavaš sa ovim")
-
-
-
-@bot.command()
-
-async def kufur(ctx):
-
-    await ctx.send("Irfane prestani")
-
-@bot.command()
-async def help(ctx):
-    embed = discord.Embed(title="📜 Ikhwa-AI Manifest", color=0x000000)
-    embed.add_field(name="Komande", value="`!roast`, `!quran`, `!blud`, `!vf`, `!vm`, `!kufur`, `!siluj`", inline=False)
-    embed.set_footer(text="Developed by DunyaStranger")
-    await ctx.send(embed=embed)
+async def kufur(ctx): await ctx.send("Irfane prestani")
 
 if __name__ == "__main__":
     keep_alive()
