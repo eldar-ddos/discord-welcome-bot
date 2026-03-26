@@ -34,11 +34,9 @@ intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 bot.remove_command("help")
 
-# Pomoćna funkcija za provjeru vlasnika
 def is_owner_check(ctx):
     return ctx.author.name == "DunyaStranger" or ctx.author.id == ctx.guild.owner_id
 
-# --- Liste roasta ---
 EXTRA_ROASTS = [
     "nećeš ti meni ovdje 'Thanks god', nego ćeš kazat 'Fala dragom Allahu'.",
     "ovo je Pazar ovo nije Pešter!",
@@ -49,45 +47,17 @@ EXTRA_ROASTS = [
     "malo jači od pavlake.",
     "iq ravan majmunu.",
     "ni tutorial ti ne pomaže.",
-    "hoćeš da upoznaš krunu? (pitaj rejana sta je kruna).",
     "Šta'e bola ti",
-    "Koliko si samo glup ni ne treba da se piše.",
-    "Toliko si pametan da duguješ IQ",
-    "Haj nemoj molim te",
-    "Izbriši ovo da niko ne vidi",
-    "Imaš vrijeme za discord a nemaš za Kur'an",
-    "Kaže lik koji ne zna ni amme džuz",
     "NPC.",
-    "Allahu Ekber..",
-    "unistio si bota koliko si pametan.",
-    "nfg893bncn48r99fkwk494 irfan 🥵🥵 fnf89435ndf.",
-    "ŠTA SMARAŠ GLAVONJA!!.",
-    "Neću ništa ni da kažem.",
-    "Jače mišljenje ima Ehlur-Ra'j od ovoga....",
-    "K.",
-    "Brate nećeš rizzati emo girl.",
-    "Ne znam šta da kažem koliko je glupo ovo što si rekao.",
-    "Druže oni AI voća i povrća su pametniji.",
-    "Brate fakat nisi smiješan.",
-    "Hoćeš da se pozabavimo? 🤭",
-    "Getting daddy angry.",
-    "Daddy gets what he wants.",
-    "Druže ne znam jesi li e-girl ili femboy.",
-    "Baqiyah ili Mačija?",
-    "Smiješan si ko Rejan.",
-    "Rekao bi svašta ali je haram.",
-    "Jesi li testiran Rabi'om?",
-    "Ponašaš se kao lik koji gleda Tung Tung Tung Sahur u 3AM..",
     "Stop yapping lil bro!"
 ]
 
-# --- Background Task za Bump ---
 @tasks.loop(minutes=121)
 async def auto_bump():
     channel = bot.get_channel(BUMP_CHANNEL_ID)
     if channel:
         await channel.send("/bump")
-        print("Bump poslan.")
+        print("Bump poslan uspješno.")
 
 @bot.event
 async def on_ready():
@@ -122,7 +92,44 @@ async def on_message(message):
 
     await bot.process_commands(message)
 
-# --- Komande ---
+# --- NOVE !vm i !vf KOMANDE ---
+
+@bot.command()
+async def vm(ctx, member: discord.Member = None):
+    if not is_owner_check(ctx): 
+        return await ctx.send("❌ Nemaš ovlaštenja, dzahile.")
+    if not member: 
+        return await ctx.send("Taguj nekoga ko zaslužuje.")
+    
+    role = discord.utils.get(ctx.guild.roles, name="VERIFIKOVAN")
+    if role:
+        try:
+            await member.add_roles(role)
+            await ctx.send(f"{member.mention} je dobio role \"VERIFIKOVAN\"")
+        except discord.Forbidden:
+            await ctx.send("❌ Nemam dozvolu da dajem role. Provjeri moju poziciju na listi rola!")
+    else:
+        await ctx.send("Role 'VERIFIKOVAN' ne postoji na serveru.")
+
+@bot.command()
+async def vf(ctx, member: discord.Member = None):
+    if not is_owner_check(ctx): 
+        return await ctx.send("❌ Nemaš ovlaštenja.")
+    if not member: 
+        return await ctx.send("Taguj osobu.")
+    
+    role = discord.utils.get(ctx.guild.roles, name="VERIFIKOVANA")
+    if role:
+        try:
+            await member.add_roles(role)
+            await ctx.send(f"{member.mention} je dobio role \"VERIFIKOVANA\"")
+        except discord.Forbidden:
+            await ctx.send("❌ Nemam dozvolu da dajem role. Provjeri moju poziciju na listi rola!")
+    else:
+        await ctx.send("Role 'VERIFIKOVANA' ne postoji na serveru.")
+
+# --- OSTATAK KODA ---
+
 @bot.command()
 async def roast(ctx, member: discord.Member = None):
     target = member or ctx.author
@@ -147,41 +154,16 @@ async def quran(ctx, ref=None):
         await ctx.send("❌ Greška u sistemu.")
 
 @bot.command()
-async def vm(ctx, member: discord.Member = None):
-    if not is_owner_check(ctx): return await ctx.send("❌ Nemaš ovlaštenja, dzahile.")
-    if not member: return await ctx.send("Taguj nekoga ko zaslužuje.")
-    
-    role = discord.utils.get(ctx.guild.roles, name="VERIFIKOVAN")
-    if role:
-        await member.add_roles(role)
-        await ctx.send(f"Brat {member.mention} je sada **VERIFIKOVAN**. ✅")
-    else:
-        await ctx.send("Role 'VERIFIKOVAN' ne postoji na serveru.")
-
-@bot.command()
-async def vf(ctx, member: discord.Member = None):
-    if not is_owner_check(ctx): return await ctx.send("❌ Nemaš ovlaštenja.")
-    if not member: return await ctx.send("Taguj osobu.")
-    
-    role = discord.utils.get(ctx.guild.roles, name="VERIFIKOVANA")
-    if role:
-        await member.add_roles(role)
-        await ctx.send(f"Sestra {member.mention} je sada **VERIFIKOVANA**. ✅")
-    else:
-        await ctx.send("Role 'VERIFIKOVANA' ne postoji na serveru.")
+async def blud(ctx, member: discord.Member=None):
+    target = member or ctx.author
+    await ctx.send(f"{target.mention}\n'I ne približavajte se bludu...' (17:32) 💀")
 
 @bot.command()
 async def help(ctx):
     embed = discord.Embed(title="📜 Ikhwa-AI Manifest", color=0x000000)
-    embed.add_field(name="Komande", value="`!roast`, `!quran`, `!vm`, `!vf`, `!kufur`, `!siluj` (Automatski bump aktivan)", inline=False)
+    embed.add_field(name="Komande", value="`!roast`, `!quran`, `!blud`, `!vm`, `!vf`, `!kufur`, `!siluj`", inline=False)
     embed.set_footer(text="Developed by DunyaStranger")
     await ctx.send(embed=embed)
-
-# Ostale komande
-@bot.command()
-async def blud(ctx, member: discord.Member=None):
-    target = member or ctx.author
-    await ctx.send(f"{target.mention}\n'I ne približavajte se bludu...' (17:32) 💀")
 
 @bot.command()
 async def siluj(ctx): await ctx.send("Daj druže šta pokušavaš sa ovim")
