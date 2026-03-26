@@ -138,6 +138,61 @@ async def blud(ctx, member: discord.Member=None):
     await ctx.send(f"{target.mention}\n'I ne približavajte se bludu...' (17:32) 💀")
 
 @bot.command()
+
+async def vm(ctx, *, member: discord.Member=None):
+
+    if not is_owner(ctx): return await ctx.send("❌ Nemaš ovlaštenja.")
+
+    if not member: return await ctx.send("Taguj membera.")
+
+    role = discord.utils.get(ctx.guild.roles, name="VERIFIKOVAN")
+
+    if role:
+
+        await member.add_roles(role)
+
+        return await ctx.send(f"{member.mention} sada ima ulogu {role.name} ✅")
+
+    await ctx.send("Role ne postoji.")
+
+
+
+
+
+@bot.command()
+
+async def vf(ctx, *, member: discord.Member=None):
+
+    if not is_owner(ctx): return await ctx.send("❌ Nemaš ovlaštenja.")
+
+    if not member: return await ctx.send("Taguj membera.")
+
+    role = discord.utils.get(ctx.guild.roles, name="VERIFIKOVANA")
+
+    if role:
+
+        await member.add_roles(role)
+
+        return await ctx.send(f"{member.mention} sada ima ulogu {role.name} ✅")
+
+    await ctx.send("Role ne postoji.")
+
+
+@bot.command()
+
+async def siluj(ctx):
+
+    await ctx.send("Daj druže f"{member.mention} šta pokušavaš sa ovim")
+
+
+
+@bot.command()
+
+async def kufur(ctx):
+
+    await ctx.send("Irfane prestani")
+
+@bot.command()
 async def help(ctx):
     embed = discord.Embed(title="📜 Ikhwa-AI Manifest", color=0x000000)
     embed.add_field(name="Komande", value="`!roast`, `!quran`, `!blud`", inline=False)
