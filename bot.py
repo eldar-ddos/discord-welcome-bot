@@ -12,7 +12,7 @@ import random
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 BUMP_CHANNEL_ID = 1442563320841371689
-ADMIN_LOG_CHANNEL_ID = 1486617811249008641  # <--- bump-channel-ai
+ADMIN_LOG_CHANNEL_ID = 1486617811249008641  # bump-channel-ai
 
 client = Groq(api_key=GROQ_API_KEY)
 
@@ -38,36 +38,45 @@ bot.remove_command("help")
 def is_owner_check(ctx):
     return ctx.author.name == "DunyaStranger" or ctx.author.id == ctx.guild.owner_id
 
-# --- Background Task za Bump ---
+EXTRA_ROASTS = [
+    "nećeš ti meni ovdje 'Thanks god', nego ćeš kazat 'Fala dragom Allahu'.",
+    "ovo je Pazar ovo nije Pešter!",
+    "oćeš ban?",
+    "ti si 404 not found.",
+    "šaciii.",
+    "yoo abi jifa, it's time to repent.",
+    "malo jači od pavlake.",
+    "iq ravan majmunu.",
+    "ni tutorial ti ne pomaže.",
+    "Šta'e bola ti",
+    "NPC.",
+    "Stop yapping lil bro!"
+]
+
+# --- Background Task za Bump Obavještenje ---
 @tasks.loop(minutes=121)
-async def auto_bump():
-    channel = bot.get_channel(BUMP_CHANNEL_ID)
+async def auto_bump_reminder():
     log_channel = bot.get_channel(ADMIN_LOG_CHANNEL_ID)
     
-    if channel:
+    if log_channel:
         try:
-            # Slanje /bump. Napomena: Većina botova ne reaguje na tuđe slash komande.
-            # Ako Disboard ne reaguje, jedino rješenje je Webhook ili poseban self-bot (što je protiv TOS-a).
-            await channel.send("/bump")
-            
-            if log_channel:
-                await log_channel.send(f"✅ **Auto-Bump**: Komanda `/bump` je poslana u <#{BUMP_CHANNEL_ID}>.")
+            # Bot više ne šalje /bump sam jer Discord to blokira.
+            # Umjesto toga, taguje admine u privatnom kanalu.
+            await log_channel.send(f"🔔 @admini, vrijeme je za **/bump** u <#{BUMP_CHANNEL_ID}>!")
+            print("Bump reminder poslan u admin kanal.")
         except Exception as e:
-            if log_channel:
-                await log_channel.send(f"❌ **Auto-Bump Error**: Neuspješno slanje. Greška: {e}")
+            print(f"Greška prilikom slanja remindera: {e}")
 
 @bot.event
 async def on_ready():
     print(f"Ikhwa-AI online: {bot.user}")
-    if not auto_bump.is_running():
-        auto_bump.start()
-
-# --- Ostatak koda (on_message, vm, vf, itd.) ostaje isti ---
-# ... (Zadrži tvoj postojeći on_message i komande ovdje)
+    if not auto_bump_reminder.is_running():
+        auto_bump_reminder.start()
 
 @bot.event
 async def on_message(message):
     if message.author == bot.user: return
+    
     if bot.user.mentioned_in(message):
         user_input = message.content.replace(f'<@{bot.user.id}>', '').strip()
         username = message.author.display_name 
@@ -87,7 +96,7 @@ async def on_message(message):
                     await message.reply(f"Sistem preopterećen, {username}. 💀")
     await bot.process_commands(message)
 
-# --- VERIFIKACIJA KOMANDE ---
+# --- KOMANDE ---
 
 @bot.command()
 async def vm(ctx, member: discord.Member = None):
@@ -122,8 +131,6 @@ async def vf(ctx, member: discord.Member = None):
             await ctx.send("❌ Nemam dozvolu.")
     else:
         await ctx.send("Role '**VERIFIKOVANA**' ne postoji.")
-
-# --- OSTATAK KOMANDI ---
 
 @bot.command()
 async def roast(ctx, member: discord.Member = None):
