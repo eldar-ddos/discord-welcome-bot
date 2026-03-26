@@ -182,7 +182,7 @@ async def vf(ctx, *, member: discord.Member=None):
 
 async def siluj(ctx):
 
-    await ctx.send("Daj druže f"{member.mention} šta pokušavaš sa ovim")
+    await ctx.send("Daj druže šta pokušavaš sa ovim")
 
 
 
