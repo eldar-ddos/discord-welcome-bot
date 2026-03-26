@@ -63,7 +63,7 @@ async def auto_bump_reminder():
         try:
             # Šalje samo jednu poruku koja ispravno taguje @ADMIN rolu
             # Format <@&ID> služi za tagovanje uloga
-            await log_channel.send(f"🔔 <@&{ADMIN_ROLE_ID}>, vrijeme je za **/bump** u <#{BUMP_CHANNEL_ID}>!")
+            await log_channel.send(f"🔔 <@&{1428261882091012096}>, vrijeme je za **/bump** u <#{1442563320841371689}>!")
             print("Bump reminder poslan u admin kanal.")
         except Exception as e:
             print(f"Greška prilikom slanja remindera: {e}")
