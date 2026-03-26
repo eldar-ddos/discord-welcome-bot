@@ -55,7 +55,7 @@ EXTRA_ROASTS = [
 ]
 
 # --- Background Task za Bump Obavještenje ---
-@tasks.loop(minutes=121)
+@tasks.loop(minutes=300)
 async def auto_bump_reminder():
     log_channel = bot.get_channel(ADMIN_LOG_CHANNEL_ID)
     
