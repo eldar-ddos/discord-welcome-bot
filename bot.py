@@ -116,6 +116,20 @@ async def on_ready():
     if not auto_bump_reminder.is_running():
         auto_bump_reminder.start()
 
+
+
+@bot.event
+
+async def on_member_join(member):
+
+    ch = bot.get_channel(WELCOME_CHANNEL_ID)
+
+    if ch:
+
+        await ch.send(WELCOME_MESSAGE_TEMPLATE.format(mention=member.mention))
+
+        await ch.send(GIF_URL)
+
 @bot.event
 async def on_message(message):
     if message.author == bot.user: return
