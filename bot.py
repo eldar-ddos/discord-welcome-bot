@@ -14,6 +14,7 @@ GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 BUMP_CHANNEL_ID = 1442563320841371689
 ADMIN_LOG_CHANNEL_ID = 1486617811249008641  # bump-channel-ai
 ADMIN_ROLE_ID = 1486619177119911996  # <--- OVDJE STAVI PRAVI ID OD @ADMIN ROLE
+WELCOME_CHANNEL_ID = 1428257626113966112
 
 client = Groq(api_key=GROQ_API_KEY)
 
@@ -24,12 +25,19 @@ instruction = (
     "STROGO PAZI na padeže i gramatiku. FORMATIRANJE: Koristi nove redove i **bold**."
 )
 
+# --- Keep Alive Setup ---
 app = Flask('')
 @app.route('/')
-def home(): return "Ikhwa-AI is operational."
-def run_flask(): app.run(host="0.0.0.0", port=8080)
-def keep_alive(): Thread(target=run_flask).start()
+def home(): 
+    return "Ikhwa-AI is operational."
 
+def run_flask(): 
+    app.run(host="0.0.0.0", port=8080)
+
+def keep_alive(): 
+    Thread(target=run_flask).start()
+
+# --- Bot Setup ---
 intents = discord.Intents.default()
 intents.members = True
 intents.message_content = True
@@ -39,21 +47,14 @@ bot.remove_command("help")
 def is_owner_check(ctx):
     return ctx.author.name == "DunyaStranger" or ctx.author.id == ctx.guild.owner_id
 
-
-model = get_model()
-
-WELCOME_CHANNEL_ID = 1428257626113966112
+# Ovdje je bila greška (model = get_model() je obrisano jer je nepotrebno)
 
 GIF_URL = "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExbm9iczdjMmxpcnpzNjIweXgyNWdxbWZzbm43aHU2N2RuNGFqeG1wMiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/7Hoo4xB9POCPDezZLz/giphy.gif"
 
 WELCOME_MESSAGE_TEMPLATE = (
-
     "🌙 Esselamu alejke {mention}, dobrodošao na **Ikhwa** server!\n"
-
     "Molimo pročitaj pravila, predstavi se i uživaj u druženju.\n"
-
     "Ako ti treba pomoć, taguj staff. 💬"
-
 )
 
 EXTRA_ROASTS = [
@@ -102,12 +103,10 @@ EXTRA_ROASTS = [
 @tasks.loop(minutes=300)
 async def auto_bump_reminder():
     log_channel = bot.get_channel(ADMIN_LOG_CHANNEL_ID)
-    
     if log_channel:
         try:
-            # Šalje samo jednu poruku koja ispravno taguje @ADMIN rolu
-            # Format <@&ID> služi za tagovanje uloga
-            await log_channel.send(f"🔔 <@&{1428261882091012096}>, vrijeme je za **/bump** u <#{1442563320841371689}>!")
+            # Tagovanje admin role
+            await log_channel.send(f"🔔 <@&{1428261882091012096}>, vrijeme je za **/bump** u <#{BUMP_CHANNEL_ID}>!")
             print("Bump reminder poslan u admin kanal.")
         except Exception as e:
             print(f"Greška prilikom slanja remindera: {e}")
@@ -118,18 +117,11 @@ async def on_ready():
     if not auto_bump_reminder.is_running():
         auto_bump_reminder.start()
 
-
-
 @bot.event
-
 async def on_member_join(member):
-
     ch = bot.get_channel(WELCOME_CHANNEL_ID)
-
     if ch:
-
         await ch.send(WELCOME_MESSAGE_TEMPLATE.format(mention=member.mention))
-
         await ch.send(GIF_URL)
 
 @bot.event
@@ -151,7 +143,8 @@ async def on_message(message):
                         temperature=0.7,
                     )
                     await message.reply(chat_completion.choices[0].message.content[:1990])
-                except:
+                except Exception as e:
+                    print(f"Groq API Error: {e}")
                     await message.reply(f"Sistem preopterećen, {username}. 💀")
     await bot.process_commands(message)
 
@@ -211,7 +204,7 @@ async def quran(ctx, ref=None):
             await ctx.send(f"📖 **{d1['data']['surah']['name']} ({surah}:{ayah})**\n\n{d1['data']['text']}\n\n📘 {d2['data']['text']}")
         else:
             await ctx.send("❌ Nepostojeći ajet.")
-    except:
+    except Exception:
         await ctx.send("❌ Greška u sistemu.")
 
 @bot.command()
@@ -227,10 +220,12 @@ async def help(ctx):
     await ctx.send(embed=embed)
 
 @bot.command()
-async def siluj(ctx): await ctx.send("Daj druže šta pokušavaš sa ovim")
+async def siluj(ctx): 
+    await ctx.send("Daj druže šta pokušavaš sa ovim")
 
 @bot.command()
-async def kufur(ctx): await ctx.send("Irfane prestani")
+async def kufur(ctx): 
+    await ctx.send("Irfane prestani")
 
 if __name__ == "__main__":
     keep_alive()
