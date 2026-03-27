@@ -45,7 +45,7 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 bot.remove_command("help")
 
 def is_owner_check(ctx):
-    allowed_roles = ["👨🏻‍💻・ADMIN", "👑・OWNER"]
+    allowed_roles = ["👨🏻‍💻・ADMIN", "👑・OWNER", "test"]
 
     return (
         ctx.author.name == "DunyaStranger"
