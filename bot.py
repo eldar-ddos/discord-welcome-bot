@@ -39,6 +39,21 @@ bot.remove_command("help")
 def is_owner_check(ctx):
     return ctx.author.name == "DunyaStranger" or ctx.author.id == ctx.guild.owner_id
 
+
+WELCOME_CHANNEL_ID = 1428257626113966112
+
+GIF_URL = "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExbm9iczdjMmxpcnpzNjIweXgyNWdxbWZzbm43aHU2N2RuNGFqeG1wMiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/7Hoo4xB9POCPDezZLz/giphy.gif"
+
+WELCOME_MESSAGE_TEMPLATE = (
+
+    "🌙 Esselamu alejke {mention}, dobrodošao na **Ikhwa** server!\n"
+
+    "Molimo pročitaj pravila, predstavi se i uživaj u druženju.\n"
+
+    "Ako ti treba pomoć, taguj staff. 💬"
+
+)
+
 EXTRA_ROASTS = [
     "nećeš ti meni ovdje 'Thanks god', nego ćeš kazat 'Fala dragom Allahu'.",
     "ovo je Pazar ovo nije Pešter!",
