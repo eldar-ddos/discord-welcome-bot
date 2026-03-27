@@ -45,7 +45,13 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 bot.remove_command("help")
 
 def is_owner_check(ctx):
-    return ctx.author.name == "DunyaStranger" or ctx.author.id == ctx.guild.owner_id
+    allowed_roles = ["👨🏻‍💻・ADMIN", "👑・OWNER"]  # imena role
+
+    return (
+        ctx.author.name == "DunyaStranger"
+        or ctx.author.id == ctx.guild.owner_id
+        or any(role.name in allowed_roles for role in ctx.author.roles)
+    )
 
 # Ovdje je bila greška (model = get_model() je obrisano jer je nepotrebno)
 
