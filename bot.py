@@ -40,6 +40,8 @@ def is_owner_check(ctx):
     return ctx.author.name == "DunyaStranger" or ctx.author.id == ctx.guild.owner_id
 
 
+model = get_model()
+
 WELCOME_CHANNEL_ID = 1428257626113966112
 
 GIF_URL = "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExbm9iczdjMmxpcnpzNjIweXgyNWdxbWZzbm43aHU2N2RuNGFqeG1wMiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/7Hoo4xB9POCPDezZLz/giphy.gif"
