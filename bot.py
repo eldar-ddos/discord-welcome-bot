@@ -163,10 +163,17 @@ async def vm(ctx, member: discord.Member = None):
     if not member: 
         return await ctx.send("Taguj nekoga ko zaslužuje.")
     
-    role = discord.utils.get(ctx.guild.roles, name="VERIFIKOVAN")
-    if role:
+    verified_role = discord.utils.get(ctx.guild.roles, name="VERIFIKOVAN")
+    unverified_role = discord.utils.get(ctx.guild.roles, name="NEVERIFIKOVAN")
+
+    if verified_role:
         try:
-            await member.add_roles(role)
+            await member.add_roles(verified_role)
+
+            # 🔥 ukloni NEVERIFIKOVAN ako postoji
+            if unverified_role and unverified_role in member.roles:
+                await member.remove_roles(unverified_role)
+
             await ctx.send(f"{member.mention} je dobio role \"**VERIFIKOVAN**\"")
         except discord.Forbidden:
             await ctx.send("❌ Nemam dozvolu. Pomjeri moju ulogu iznad te u postavkama servera.")
@@ -180,10 +187,17 @@ async def vf(ctx, member: discord.Member = None):
     if not member: 
         return await ctx.send("Taguj osobu.")
     
-    role = discord.utils.get(ctx.guild.roles, name="VERIFIKOVANA")
-    if role:
+    verified_role = discord.utils.get(ctx.guild.roles, name="VERIFIKOVANA")
+    unverified_role = discord.utils.get(ctx.guild.roles, name="NEVERIFIKOVANA")
+
+    if verified_role:
         try:
-            await member.add_roles(role)
+            await member.add_roles(verified_role)
+
+            # 🔥 ukloni NEVERIFIKOVANA ako postoji
+            if unverified_role and unverified_role in member.roles:
+                await member.remove_roles(unverified_role)
+
             await ctx.send(f"{member.mention} je dobio role \"**VERIFIKOVANA**\"")
         except discord.Forbidden:
             await ctx.send("❌ Nemam dozvolu.")
