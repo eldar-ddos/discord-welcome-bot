@@ -105,18 +105,6 @@ EXTRA_ROASTS = [
     "Stop yapping lil bro!"
 ]
 
-# --- Background Task za Bump Obavještenje ---
-@tasks.loop(minutes=300)
-async def auto_bump_reminder():
-    log_channel = bot.get_channel(ADMIN_LOG_CHANNEL_ID)
-    if log_channel:
-        try:
-            # Tagovanje admin role
-            await log_channel.send(f"🔔 <@&{1428261882091012096}>, vrijeme je za **/bump** u <#{BUMP_CHANNEL_ID}>!")
-            print("Bump reminder poslan u admin kanal.")
-        except Exception as e:
-            print(f"Greška prilikom slanja remindera: {e}")
-
 @bot.event
 async def on_ready():
     print(f"Ikhwa-AI online: {bot.user}")
