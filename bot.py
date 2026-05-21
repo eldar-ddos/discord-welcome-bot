@@ -64,7 +64,7 @@ async def on_ready():
 async def on_member_join(member):
     ch = bot.get_channel(WELCOME_CHANNEL_ID)
     if ch:
-        await ch.send(f"🌙 Esselamu alejke {member.mention}, dobrodošao na Ikhwa! Ne pravi probleme da ne budeš cooked. 💀")
+        await ch.send(f"🌙 Esselamu alejke {member.mention}, dobrodošao na Ikhwa!")
 
 @bot.event
 async def on_message(message):
@@ -106,7 +106,7 @@ async def vm(ctx, *, member: discord.Member=None):
     role = discord.utils.get(ctx.guild.roles, name="VERIFIKOVAN")
     if role:
         await member.add_roles(role)
-        return await ctx.send(f"Uspješna verifikacija za {member.mention}. Akida check: PASSED. ✅")
+        return await ctx.send(f"Uspješna verifikacija za {member.mention}.")
     await ctx.send("Role 'VERIFIKOVAN' ne postoji.")
 
 @bot.command()
