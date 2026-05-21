@@ -45,6 +45,14 @@ WELCOME_CHANNEL_ID = 1428257626113966112
 OWNER_ROLE_NAME = "👑・OWNER"
 tag_counter = {}
 
+LOG_CHANNEL_ID = 1428291337542701158
+
+async def send_log(message):
+    channel = bot.get_channel(LOG_CHANNEL_ID)
+
+    if channel:
+        await channel.send(message)
+
 EXTRA_ROASTS = [
     "nećeš ti meni ovdje 'Thanks god'...", "IQ ravan majmunu.", "NPC.", "Oćeš ban?",
     "ti si 404 not found.", "malo jači od pavlake.", "ni tutorial ti ne pomaže.",
@@ -63,8 +71,48 @@ async def on_ready():
 @bot.event
 async def on_member_join(member):
     ch = bot.get_channel(WELCOME_CHANNEL_ID)
+
+    await send_log(f"📥 Member joined: {member} ({member.id})")
+
     if ch:
-        await ch.send(f"🌙 Esselamu alejke {member.mention}, dobrodošao na Ikhwa!")
+        await ch.send(f"🌙 Esselamu alejkum {member.mention}, dobrodošao na Ikhwa!")
+@bot.event
+async def on_member_remove(member):
+    await send_log(f"📤 Member left: {member} ({member.id})")
+
+@bot.event
+async def on_command(ctx):
+    await send_log(
+        f"⚡ {ctx.author} used command: {ctx.message.content}"
+    )
+
+@bot.event
+async def on_message_delete(message):
+    if message.author.bot:
+        return
+
+    await send_log(
+        f"🗑️ Deleted message from {message.author}: {message.content}"
+    )
+
+@bot.event
+async def on_message_edit(before, after):
+    if before.author.bot:
+        return
+
+    if before.content != after.content:
+        await send_log(
+            f"✏️ {before.author} edited message:\n"
+            f"BEFORE: {before.content}\n"
+            f"AFTER: {after.content}"
+        )
+
+@bot.event
+async def on_command_error(ctx, error):
+    await send_log(
+        f"❌ Error by {ctx.author}: {error}"
+    )
+
 
 @bot.event
 async def on_message(message):
