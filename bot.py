@@ -47,11 +47,20 @@ tag_counter = {}
 
 LOG_CHANNEL_ID = 1428291337542701158
 
-async def send_log(message):
+async def send_log(title, description, color=0xff0000):
     channel = bot.get_channel(LOG_CHANNEL_ID)
 
-    if channel:
-        await channel.send(message)
+    if not channel:
+        return
+
+    embed = discord.Embed(
+        title=title,
+        description=description,
+        color=color
+    )
+
+    embed.set_footer(text="Ikhwa Security Logs")
+    await channel.send(embed=embed)
 
 EXTRA_ROASTS = [
     "nećeš ti meni ovdje 'Thanks god'...", "IQ ravan majmunu.", "NPC.", "Oćeš ban?",
@@ -65,25 +74,36 @@ def is_owner(ctx):
 
 # --- Events ---
 @bot.event
-async def on_ready():
-    print(f"Ikhwa-AI online (Groq Engine): {bot.user}")
-
-@bot.event
 async def on_member_join(member):
     ch = bot.get_channel(WELCOME_CHANNEL_ID)
 
-    await send_log(f"📥 Member joined: {member} ({member.id})")
+    await send_log(
+        "📥 Member Joined",
+        f"**User:** {member.mention}\n**ID:** `{member.id}`",
+        0x00ff00
+    )
 
     if ch:
-        await ch.send(f"🌙 Esselamu alejkum {member.mention}, dobrodošao na Ikhwa!")
+        await ch.send(
+            f"🌙 Esselamu alejkum {member.mention}, dobrodošao na Ikhwa!"
+        )
+
 @bot.event
 async def on_member_remove(member):
-    await send_log(f"📤 Member left: {member} ({member.id})")
+    await send_log(
+        "📤 Member Left",
+        f"**User:** {member}\n**ID:** `{member.id}`",
+        0xff0000
+    )
 
 @bot.event
 async def on_command(ctx):
     await send_log(
-        f"⚡ {ctx.author} used command: {ctx.message.content}"
+        "⚡ Command Used",
+        f"**User:** {ctx.author.mention}\n"
+        f"**Command:** `{ctx.message.content}`\n"
+        f"**Channel:** {ctx.channel.mention}",
+        0x5865F2
     )
 
 @bot.event
@@ -92,7 +112,11 @@ async def on_message_delete(message):
         return
 
     await send_log(
-        f"🗑️ Deleted message from {message.author}: {message.content}"
+        "🗑️ Message Deleted",
+        f"**Author:** {message.author.mention}\n"
+        f"**Channel:** {message.channel.mention}\n"
+        f"**Content:**\n```{message.content}```",
+        0xff5500
     )
 
 @bot.event
@@ -100,17 +124,25 @@ async def on_message_edit(before, after):
     if before.author.bot:
         return
 
-    if before.content != after.content:
-        await send_log(
-            f"✏️ {before.author} edited message:\n"
-            f"BEFORE: {before.content}\n"
-            f"AFTER: {after.content}"
-        )
+    if before.content == after.content:
+        return
+
+    await send_log(
+        "✏️ Message Edited",
+        f"**Author:** {before.author.mention}\n"
+        f"**Channel:** {before.channel.mention}\n\n"
+        f"**Before:**\n```{before.content}```\n"
+        f"**After:**\n```{after.content}```",
+        0xffff00
+    )
 
 @bot.event
 async def on_command_error(ctx, error):
     await send_log(
-        f"❌ Error by {ctx.author}: {error}"
+        "❌ Command Error",
+        f"**User:** {ctx.author.mention}\n"
+        f"**Error:**\n```{error}```",
+        0x8b0000
     )
 
 
