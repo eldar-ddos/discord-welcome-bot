@@ -202,24 +202,50 @@ async def on_message(message):
 
 # --- Admin Commands ---
 @bot.command()
-async def vm(ctx, *, member: discord.Member=None):
-    if not is_owner(ctx): return await ctx.send("❌ Nemaš ovlaštenja.")
-    if not member: return await ctx.send("Taguj membera, NPC.")
-    role = discord.utils.get(ctx.guild.roles, name="VERIFIKOVAN")
-    if role:
-        await member.add_roles(role)
-        return await ctx.send(f"Uspješna verifikacija za {member.mention}.")
+async def vm(ctx, member: discord.Member = None):
+    if not is_owner(ctx):
+        return await ctx.send("❌ Nemaš ovlaštenja. Sad sjedni dole.")
+
+    if not member:
+        return await ctx.send("Taguj membera budalo.")
+
+    verified_role = discord.utils.get(ctx.guild.roles, name="VERIFIKOVAN")
+    unverified_role = discord.utils.get(ctx.guild.roles, name="NEVERIFIKOVAN")
+
+    if verified_role:
+        # Ukloni NEVERIFIKOVAN ako postoji
+        if unverified_role and unverified_role in member.roles:
+            await member.remove_roles(unverified_role)
+
+        # Dodaj VERIFIKOVAN
+        await member.add_roles(verified_role)
+
+        return await ctx.send(f"Uspješna verifikacija za {member.mention}. ✅")
+
     await ctx.send("Role 'VERIFIKOVAN' ne postoji.")
-    
+
 
 @bot.command()
-async def vf(ctx, *, member: discord.Member=None):
-    if not is_owner(ctx): return await ctx.send("❌ Nemaš ovlaštenja.")
-    if not member: return await ctx.send("Taguj žensko, bludnik.")
-    role = discord.utils.get(ctx.guild.roles, name="VERIFIKOVANA")
-    if role:
-        await member.add_roles(role)
+async def vf(ctx, member: discord.Member = None):
+    if not is_owner(ctx):
+        return await ctx.send("❌ Nemaš ovlaštenja. Lol kidaro glupa.")
+
+    if not member:
+        return await ctx.send("Taguj žensko budalice.")
+
+    verified_role = discord.utils.get(ctx.guild.roles, name="VERIFIKOVANA")
+    unverified_role = discord.utils.get(ctx.guild.roles, name="NEVERIFIKOVANA")
+
+    if verified_role:
+        # Ukloni NEVERIFIKOVANA ako postoji
+        if unverified_role and unverified_role in member.roles:
+            await member.remove_roles(unverified_role)
+
+        # Dodaj VERIFIKOVANA
+        await member.add_roles(verified_role)
+
         return await ctx.send(f"{member.mention} je sada VERIFIKOVANA. ✅")
+
     await ctx.send("Role 'VERIFIKOVANA' ne postoji.")
 
 @bot.command()
