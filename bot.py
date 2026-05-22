@@ -66,7 +66,8 @@ EXTRA_ROASTS = [
     "nećeš ti meni ovdje 'Thanks god'...", "IQ ravan majmunu.", "NPC.", "Oćeš ban?",
     "ti si 404 not found.", "malo jači od pavlake.", "ni tutorial ti ne pomaže.",
     "Imaš vrijeme za discord a nemaš za Kur'an", "Kaže lik koji ne zna ni amme džuz",
-    "Stop yapping lil bro!", "šaciii.", "Smiješan si ko Rejan."
+    "Stop yapping lil bro!", "šaciii.", "Smiješan si ko Rejan.", "Ide li to?", "Smiješan si ka' Eldar", "Bujrum.",
+    "Druže, znam da me voliš.", "Ahhhhhh", "67", "I show meat ili I show feet?", "VATRA", "Rejan ima dobar našid taste", " <--- Budalica"
 ]
 
 def is_owner(ctx):
@@ -218,6 +219,50 @@ async def vf(ctx, *, member: discord.Member=None):
         await member.add_roles(role)
         return await ctx.send(f"{member.mention} je sada VERIFIKOVANA. ✅")
     await ctx.send("Role 'VERIFIKOVANA' ne postoji.")
+
+@bot.command()
+@commands.has_permissions(kick_members=True)
+async def kick(ctx, member: discord.Member, *, reason=None):
+    if reason is None:
+        return await ctx.send("❌ Moraš napisati razlog za kick!")
+
+    await member.kick(reason=reason)
+
+    await send_log(
+        "👢 Member Kicked",
+        f"**User:** {member.mention}\n**By:** {ctx.author.mention}\n**Reason:** `{reason}`\n**ID:** `{member.id}`",
+        0xffa500
+    )
+
+    await ctx.send(f"👢 {member} je kickovan.")
+
+@bot.command()
+@commands.has_permissions(ban_members=True)
+async def ban(ctx, member: discord.Member, *, reason=None):
+    if reason is None:
+        return await ctx.send("❌ Moraš napisati razlog za ban!")
+
+    await member.ban(reason=reason)
+
+    await send_log(
+        "⛔ Member Banned",
+        f"**User:** {member.mention}\n**By:** {ctx.author.mention}\n**Reason:** `{reason}`\n**ID:** `{member.id}`",
+        0xff0000
+    )
+
+    await ctx.send(f"⛔ {member} je banovan.")
+
+@kick.error
+async def kick_error(ctx, error):
+    if isinstance(error, commands.MissingPermissions):
+        await ctx.send("❌ Nemaš dozvolu za kick.")
+
+@ban.error
+async def ban_error(ctx, error):
+    if isinstance(error, commands.MissingPermissions):
+        await ctx.send("❌ Nemaš dozvolu za ban.")
+
+
 
 # --- User Commands ---
 @bot.command()
