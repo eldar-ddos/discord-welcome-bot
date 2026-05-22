@@ -269,36 +269,56 @@ async def role(ctx, member: discord.Member = None, *, role_name=None):
 
 @bot.command()
 @commands.has_permissions(kick_members=True)
-async def kick(ctx, member: discord.Member, *, reason=None):
-    
+async def kick(ctx, member: discord.Member = None, *, reason=None):
+
     if not member or not reason:
-        return await ctx.send("Koristi: !kick @member razlog, al si ti glup")
+        return await ctx.send("Koristi: !kick @member razlog")
+
+    if member == ctx.author:
+        return await ctx.send("❌ Ne možeš sebe kickovati.")
+
+    if member == ctx.guild.owner:
+        return await ctx.send("❌ Ne možeš kickovati ownera servera.")
 
     await member.kick(reason=reason)
 
     await send_log(
         "👢 Member Kicked",
-        f"**User:** {member.mention}\n**By:** {ctx.author.mention}\n**Reason:** `{reason}`\n**ID:** `{member.id}`",
+        f"**User:** {member.mention}\n"
+        f"**By:** {ctx.author.mention}\n"
+        f"**Reason:** `{reason}`\n"
+        f"**ID:** `{member.id}`",
         0xffa500
     )
 
-    await ctx.send(f"👢 {member} je kickovan.")
+    await ctx.send(f"👢 {member.mention} je kickovan.")
+
 
 @bot.command()
 @commands.has_permissions(ban_members=True)
-async def ban(ctx, member: discord.Member, *, reason=None):
+async def ban(ctx, member: discord.Member = None, *, reason=None):
+
     if not member or not reason:
-        return await ctx.send("Koristi: !ban @member razlog, al si ti glup")
+        return await ctx.send("Koristi: !ban @member razlog, covjece..")
+
+    if member == ctx.author:
+        return await ctx.send("❌ Ne možeš sebe banovati. Jesi glup?")
+
+    if member == ctx.guild.owner:
+        return await ctx.send("❌ Ne možeš banovati ownera servera. Sad cu te banati.")
 
     await member.ban(reason=reason)
 
     await send_log(
         "⛔ Member Banned",
-        f"**User:** {member.mention}\n**By:** {ctx.author.mention}\n**Reason:** `{reason}`\n**ID:** `{member.id}`",
+        f"**User:** {member.mention}\n"
+        f"**By:** {ctx.author.mention}\n"
+        f"**Reason:** `{reason}`\n"
+        f"**ID:** `{member.id}`",
         0xff0000
     )
 
-    await ctx.send(f"⛔ {member} je banovan.")
+    await ctx.send(f"⛔ {member.mention} je banovan.")
 
 @kick.error
 async def kick_error(ctx, error):
