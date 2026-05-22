@@ -289,6 +289,25 @@ async def mute(ctx, member: discord.Member, minutes: int, *, reason=None):
 
     await ctx.send(f"🔇 {member} je mutan na {minutes} minuta.")
 
+@bot.command()
+@commands.has_permissions(moderate_members=True)
+async def unmute(ctx, member: discord.Member, *, reason=None):
+    if reason is None:
+        return await ctx.send("❌ Moraš napisati razlog za unmute!")
+
+    await member.timeout(None, reason=reason)
+
+    await send_log(
+        "🔊 Member Unmuted",
+        f"**User:** {member.mention}\n"
+        f"**By:** {ctx.author.mention}\n"
+        f"**Reason:** `{reason}`\n"
+        f"**ID:** `{member.id}`",
+        0x00ff00
+    )
+
+    await ctx.send(f"🔊 {member} je unmutan.")
+
 
 
 # --- User Commands ---
