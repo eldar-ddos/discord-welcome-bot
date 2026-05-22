@@ -107,6 +107,26 @@ async def on_command(ctx):
     )
 
 @bot.event
+async def on_member_update(before, after):
+    # ROLE DODAN
+    added_roles = [role for role in after.roles if role not in before.roles]
+    for role in added_roles:
+        await send_log(
+            "➕ Role Added",
+            f"**User:** {after.mention}\n**Role:** `{role.name}`\n**ID:** `{after.id}`",
+            0x00ff00
+        )
+
+    # ROLE UKLONJEN
+    removed_roles = [role for role in before.roles if role not in after.roles]
+    for role in removed_roles:
+        await send_log(
+            "➖ Role Removed",
+            f"**User:** {after.mention}\n**Role:** `{role.name}`\n**ID:** `{after.id}`",
+            0xff0000
+        )
+
+@bot.event
 async def on_message_delete(message):
     if message.author.bot:
         return
