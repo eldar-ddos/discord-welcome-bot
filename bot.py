@@ -292,6 +292,28 @@ async def kick(ctx, member: discord.Member = None, *, reason=None):
     )
 
     await ctx.send(f"👢 {member.mention} je kickovan.")
+@bot.command()
+@commands.has_permissions(manage_messages=True)
+async def purge(ctx, amount: int = None):
+
+    if not amount:
+        return await ctx.send("Koristi: !purge broj")
+
+    if amount > 100:
+        return await ctx.send("❌ Maksimalno možeš obrisati 100 poruka odjednom.")
+
+    # +1 da obriše i komandu
+    await ctx.channel.purge(limit=amount + 1)
+
+    msg = await ctx.send(f"🗑️ Obrisano `{amount}` poruka.")
+
+    await asyncio.sleep(3)
+
+    try:
+        await msg.delete()
+    except:
+        pass
+
 
 
 @bot.command()
