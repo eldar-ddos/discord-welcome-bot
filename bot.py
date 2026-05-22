@@ -8,6 +8,7 @@ from threading import Thread
 import requests
 import aiohttp
 import random
+from datetime import timedelta
 
 # --- Configuration ---
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
@@ -209,6 +210,7 @@ async def vm(ctx, *, member: discord.Member=None):
         await member.add_roles(role)
         return await ctx.send(f"Uspješna verifikacija za {member.mention}.")
     await ctx.send("Role 'VERIFIKOVAN' ne postoji.")
+    
 
 @bot.command()
 async def vf(ctx, *, member: discord.Member=None):
@@ -261,6 +263,31 @@ async def kick_error(ctx, error):
 async def ban_error(ctx, error):
     if isinstance(error, commands.MissingPermissions):
         await ctx.send("❌ Nemaš dozvolu za ban.")
+
+@bot.command()
+@commands.has_permissions(moderate_members=True)
+async def mute(ctx, member: discord.Member, minutes: int, *, reason=None):
+    if reason is None:
+        return await ctx.send("❌ Moraš napisati razlog za mute!")
+
+    if minutes <= 0:
+        return await ctx.send("❌ Vrijeme mora biti veće od 0 minuta!")
+
+    duration = timedelta(minutes=minutes)
+
+    await member.timeout(duration, reason=reason)
+
+    await send_log(
+        "🔇 Member Muted",
+        f"**User:** {member.mention}\n"
+        f"**By:** {ctx.author.mention}\n"
+        f"**Time:** `{minutes} minutes`\n"
+        f"**Reason:** `{reason}`\n"
+        f"**ID:** `{member.id}`",
+        0x808080
+    )
+
+    await ctx.send(f"🔇 {member} je mutan na {minutes} minuta.")
 
 
 
