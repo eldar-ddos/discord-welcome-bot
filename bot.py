@@ -249,10 +249,30 @@ async def vf(ctx, member: discord.Member = None):
     await ctx.send("Role 'VERIFIKOVANA' ne postoji.")
 
 @bot.command()
+async def role(ctx, member: discord.Member = None, *, role_name=None):
+    if not is_owner(ctx):
+        return await ctx.send("❌ Nemaš ovlaštenja.")
+
+    if not member or not role_name:
+        return await ctx.send("Koristi: !role @member ImeRole")
+
+    # Traži role po imenu
+    role = discord.utils.get(ctx.guild.roles, name=role_name)
+
+    if not role:
+        return await ctx.send(f"❌ Role '{role_name}' ne postoji.")
+
+    # Dodaj role
+    await member.add_roles(role)
+
+    await ctx.send(f"✅ {member.mention} je dobio role `{role.name}`.")
+
+@bot.command()
 @commands.has_permissions(kick_members=True)
 async def kick(ctx, member: discord.Member, *, reason=None):
-    if reason is None:
-        return await ctx.send("❌ Moraš napisati razlog za kick!")
+    
+    if not member or not reason:
+        return await ctx.send("Koristi: !kick @member razlog, al si ti glup")
 
     await member.kick(reason=reason)
 
@@ -267,8 +287,8 @@ async def kick(ctx, member: discord.Member, *, reason=None):
 @bot.command()
 @commands.has_permissions(ban_members=True)
 async def ban(ctx, member: discord.Member, *, reason=None):
-    if reason is None:
-        return await ctx.send("❌ Moraš napisati razlog za ban!")
+    if not member or not reason:
+        return await ctx.send("Koristi: !ban @member razlog, al si ti glup")
 
     await member.ban(reason=reason)
 
