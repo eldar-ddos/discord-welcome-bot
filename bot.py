@@ -365,7 +365,7 @@ async def help(ctx):
     embed = discord.Embed(title="📜 Ikhwa-AI Manifest", color=0x000000)
     embed.add_field(name="Base", value="`!roast`, `!quran`, `!blud`, `!whomadeu`", inline=False)
     if is_owner(ctx):
-        embed.add_field(name="Elite", value="`!vm`, `!vf`", inline=False)
+        embed.add_field(name="Elite", value="`!vm`, `!vf`, `!mute`, `!unmute`, `!kick`, `!ban`", inline=False)
     embed.set_footer(text="Developed by DunyaStranger | Groq Engine")
     await ctx.send(embed=embed)
 
