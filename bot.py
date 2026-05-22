@@ -331,6 +331,38 @@ async def ban_error(ctx, error):
         await ctx.send("❌ Nemaš dozvolu za ban.")
 
 @bot.command()
+async def ping(ctx, member: discord.Member = None):
+
+    if not is_owner(ctx):
+        return await ctx.send("❌ Nemaš ovlaštenja.")
+
+    if not member:
+        return await ctx.send("Koristi: !ping @member")
+
+    # Pošalji 10 pingova
+    messages = []
+
+    for _ in range(10):
+        msg = await ctx.send(member.mention)
+        messages.append(msg)
+
+    # Malo sačekaj
+    await asyncio.sleep(3)
+
+    # Obriši pingove
+    for msg in messages:
+        try:
+            await msg.delete()
+        except:
+            pass
+
+    # Obriši i komandu
+    try:
+        await ctx.message.delete()
+    except:
+        pass
+
+@bot.command()
 @commands.has_permissions(moderate_members=True)
 async def mute(ctx, member: discord.Member, minutes: int, *, reason=None):
     if reason is None:
