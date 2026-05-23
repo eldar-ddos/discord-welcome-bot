@@ -483,10 +483,26 @@ async def blud(ctx, member: discord.Member=None):
 @bot.command()
 async def help(ctx):
     embed = discord.Embed(title="📜 Ikhwa-AI Manifest", color=0x000000)
-    embed.add_field(name="Base", value="`!roast`, `!quran`, `!blud`, `!whomadeu`", inline=False)
+    embed.add_field(name="Base", value="`!roast`, `!quran`, `!blud`, `!whomadeu`, '!pfp'", inline=False)
     if is_owner(ctx):
         embed.add_field(name="Elite", value="`!vm`, `!vf`, `!mute`, `!unmute`, `!kick`, `!ban`, `!role`", inline=False)
     embed.set_footer(text="Developed by DunyaStranger | Groq Engine")
+    await ctx.send(embed=embed)
+
+async def pfp(ctx, member: discord.Member = None):
+    
+    # Ako nije tagovao nikoga, uzmi autora poruke
+    member = member or ctx.author
+
+    # Embed
+    embed = discord.Embed(
+        title=f"🖼️ Profilna od {member}",
+        color=discord.Color.blue()
+    )
+
+    # Profilna slika
+    embed.set_image(url=member.display_avatar.url)
+
     await ctx.send(embed=embed)
 
 # --- Telegram Sync ---
