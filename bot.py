@@ -249,23 +249,18 @@ async def vf(ctx, member: discord.Member = None):
     await ctx.send("Role 'VERIFIKOVANA' ne postoji.")
 
 @bot.command()
-async def role(ctx, member: discord.Member = None, *, role_name=None):
+async def role(ctx, member: discord.Member = None, role: discord.Role = None):
+    
     if not is_owner(ctx):
         return await ctx.send("❌ Nemaš ovlaštenja.")
 
-    if not member or not role_name:
-        return await ctx.send("Koristi: !role @member ImeRole")
-
-    # Traži role po imenu
-    role = discord.utils.get(ctx.guild.roles, name=role_name)
-
-    if not role:
-        return await ctx.send(f"❌ Role '{role_name}' ne postoji.")
+    if not member or not role:
+        return await ctx.send("Koristi: !role @member @role")
 
     # Dodaj role
     await member.add_roles(role)
 
-    await ctx.send(f"✅ {member.mention} je dobio role `{role.name}`.")
+    await ctx.send(f"✅ {member.mention} je dobio role {role.mention}.")
 
 @bot.command()
 @commands.has_permissions(kick_members=True)
