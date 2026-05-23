@@ -292,6 +292,7 @@ async def kick(ctx, member: discord.Member = None, *, reason=None):
     )
 
     await ctx.send(f"👢 {member.mention} je kickovan.")
+    
 @bot.command()
 @commands.has_permissions(manage_messages=True)
 async def purge(ctx, amount: int = None):
@@ -489,6 +490,7 @@ async def help(ctx):
     embed.set_footer(text="Developed by DunyaStranger | Groq Engine")
     await ctx.send(embed=embed)
 
+@bot.command()
 async def pfp(ctx, member: discord.Member = None):
     
     # Ako nije tagovao nikoga, uzmi autora poruke
