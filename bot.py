@@ -484,7 +484,7 @@ async def blud(ctx, member: discord.Member=None):
 @bot.command()
 async def help(ctx):
     embed = discord.Embed(title="📜 Ikhwa-AI Manifest", color=0x000000)
-    embed.add_field(name="Base", value="`!roast`, `!quran`, `!blud`, `!whomadeu`, `!pfp`'", inline=False)
+    embed.add_field(name="Base", value="`!roast`, `!quran`, `!blud`, `!whomadeu`, `!pfp`", inline=False)
     if is_owner(ctx):
         embed.add_field(name="Elite", value="`!vm`, `!vf`, `!mute`, `!unmute`, `!kick`, `!ban`, `!role`, `!purge`", inline=False)
     embed.set_footer(text="Developed by DunyaStranger | Groq Engine")
